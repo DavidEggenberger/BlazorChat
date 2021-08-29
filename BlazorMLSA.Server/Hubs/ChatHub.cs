@@ -1,4 +1,4 @@
-﻿using BlazorMLSA.Server.EFCore;
+﻿using BlazorMLSA.Server.Data;
 using BlazorMLSA.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -54,13 +54,6 @@ namespace BlazorMLSA.Server.Hubs
         {
             messageDtos.Add(message);
             await Clients.User(message.ReceiverId).SendAsync("ReceiveMessage", message);
-        }
-    }
-    public class EmailBasedUserIdProvider : IUserIdProvider
-    {
-        public virtual string GetUserId(HubConnectionContext connection)
-        {
-            return connection.User?.FindFirst("sub")?.Value;
         }
     }
 }

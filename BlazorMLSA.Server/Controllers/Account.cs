@@ -1,4 +1,4 @@
-﻿using BlazorMLSA.Server.EFCore;
+﻿using BlazorMLSA.Server.Data;
 using BlazorMLSA.Server.Hubs;
 using BlazorMLSA.Shared;
 using Microsoft.AspNetCore.Http;
