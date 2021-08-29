@@ -99,8 +99,19 @@ path{
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
 }
-
     .port.bottom:hover {
         cursor: pointer;
         border: 2px solid;
+    }
+.contact .port.bottom {
+    height: 20px;
+    width: 20px;
+    background-color: white;
+    position: relative;
+    top: -3px;
+    display: grid;
+    justify-content: center;
+}
+    .contact .port.bottom:hover {
+        cursor: pointer;
     }

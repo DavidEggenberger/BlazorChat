@@ -1,35 +1,18 @@
-﻿<style>
-    .port.bottom{
-        height: 20px;
-        width: 20px;
-        background-color: white;
-        position: relative;
-        top: -3px;
-        display: grid;
-        justify-content: center;
-    }
-    .port.bottom:hover{
-        cursor: pointer;
-    }
-</style>
-<AuthorizeView>
-    <div class="card">
-        <div class="card-body">
-            <h2>@Node.UserDto.Name  @message</h2>
-            <img width="150" src="@Node.UserDto.Image" />
-        </div>
-        <div style="width: 100%; display: grid; place-items: center;">
-            @foreach (var port in Node.Ports)
-            {
-                <!-- Default ports -->
-                <PortRenderer Port="port" />
-            }
-        </div>
+﻿<div class="card contact">
+    <div class="card-body">
+        <h2>@Node.UserDto.Name  @message</h2>
+        <img width="150" src="@Node.UserDto.Image" />
     </div>
-</AuthorizeView>
+    <div style="width: 100%; display: grid; place-items: center;">
+        @foreach (var port in Node.Ports)
+        {
+            <!-- Default ports -->
+            <PortRenderer Port="port" />
+        }
+    </div>
+</div>
 
-
-@code {
+@code{
     string message;
     [Parameter]
     public ContactNode Node { get; set; }

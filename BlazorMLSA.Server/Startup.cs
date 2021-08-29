@@ -4,24 +4,19 @@ using BlazorMLSA.Server.Utilities.IdentityServer;
 using BlazorMLSA.Server.Utilities.LinkedInPicture;
 using BlazorMLSA.Server.Utilities.SignalR;
 using BlazorMLSA.Shared;
-using IdentityModel.Client;
-using IdentityServer4.Extensions;
 using IdentityServer4.Models;
-using IdentityServer4.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -31,8 +26,6 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace BlazorMLSA.Server
 {
@@ -50,8 +43,16 @@ namespace BlazorMLSA.Server
             services.AddSingleton<IUserIdProvider, EmailBasedUserIdProvider>();
             services.AddSingleton<List<UserDto>>();
             services.AddSingleton<List<MessageDto>>();
-            
-            services.AddControllers();
+
+            services.AddControllers()
+                .AddMvcOptions(options => 
+                {
+                    var policy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+                    options.Filters.Add(new AuthorizeFilter(policy));
+                });
+
             services.AddRazorPages();
             services.AddSignalR();
 
@@ -62,6 +63,11 @@ namespace BlazorMLSA.Server
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddHttpClient("github", client =>
+            {
+                client.BaseAddress = new Uri("https://api.linkedin.com/v2");
+            });
 
             services.Configure<IdentityOptions>(options =>
             {
@@ -117,9 +123,9 @@ namespace BlazorMLSA.Server
                     options.Scope.Add("r_liteprofile");
                     options.Events.OnCreatingTicket = async context =>
                     {
-                        HttpClient htp = new HttpClient();
+                        HttpClient htp = context.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("github");
                         htp.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
-                        var respone = await htp.GetStringAsync("https://api.linkedin.com/v2/me?projection=(id,profilePicture(displayImage~:playableStreams))");
+                        var respone = await htp.GetStringAsync("/me?projection=(id,profilePicture(displayImage~:playableStreams))");
                         Root root = JsonSerializer.Deserialize<Root>(respone);
                         context.Identity.AddClaim(new Claim("picture", root.profilePicture.DisplayImage.elements.Skip(1).First().identifiers.First().identifier));
                     };
@@ -161,7 +167,7 @@ namespace BlazorMLSA.Server
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<ChatHub>("/chathub");
+                endpoints.MapHub<ChatHub>("/chathub").RequireAuthorization();
                 endpoints.MapControllers();
                 endpoints.MapRazorPages();
                 endpoints.MapFallbackToFile("index.html");
