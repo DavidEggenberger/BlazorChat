@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>ddc0bc9e-5433-4b6a-8503-64663e726505</UserSecretsId>
+    <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BlazorMLSA.Shared\BlazorMLSA.Shared.csproj" />
-    <ProjectReference Include="..\BlazorMLSA\BlazorMLSA.Client.csproj" />
+    <ProjectReference Include="..\BlazorMLSA.Client\BlazorMLSA.Client.csproj" />
   </ItemGroup>
 
 </Project>
