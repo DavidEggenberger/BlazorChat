@@ -1,9 +1,6 @@
 ﻿using Blazor.Diagrams.Core.Models;
+using BlazorMLSA.Client.Diagrams.Ports;
 using BlazorMLSA.Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BlazorMLSA.Client.Diagrams.Nodes
 {

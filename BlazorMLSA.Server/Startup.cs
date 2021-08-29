@@ -44,14 +44,7 @@ namespace BlazorMLSA.Server
             services.AddSingleton<List<UserDto>>();
             services.AddSingleton<List<MessageDto>>();
 
-            services.AddControllers()
-                .AddMvcOptions(options => 
-                {
-                    var policy = new AuthorizationPolicyBuilder()
-                        .RequireAuthenticatedUser()
-                        .Build();
-                    options.Filters.Add(new AuthorizeFilter(policy));
-                });
+            services.AddControllers();
 
             services.AddRazorPages();
             services.AddSignalR();
@@ -111,7 +104,7 @@ namespace BlazorMLSA.Server
                         DisplayName = "Picture",
                         UserClaims = new List<string> { ClaimTypes.WindowsAccountName}
                     });
-                    options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes("David Eggenberger Very secure and long password!!!")), SecurityAlgorithms.HmacSha256);
+                    options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Very secure and long password!!!")), SecurityAlgorithms.HmacSha256);
                 })
                 .AddProfileService<ProfileService>();
 
@@ -125,7 +118,7 @@ namespace BlazorMLSA.Server
                     {
                         HttpClient htp = context.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("github");
                         htp.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
-                        var respone = await htp.GetStringAsync("/me?projection=(id,profilePicture(displayImage~:playableStreams))");
+                        var respone = await htp.GetStringAsync(htp.BaseAddress + "/me?projection=(id,profilePicture(displayImage~:playableStreams))");
                         Root root = JsonSerializer.Deserialize<Root>(respone);
                         context.Identity.AddClaim(new Claim("picture", root.profilePicture.DisplayImage.elements.Skip(1).First().identifiers.First().identifier));
                     };
@@ -168,7 +161,7 @@ namespace BlazorMLSA.Server
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<ChatHub>("/chathub").RequireAuthorization();
-                endpoints.MapControllers();
+                endpoints.MapControllers().RequireAuthorization();
                 endpoints.MapRazorPages();
                 endpoints.MapFallbackToFile("index.html");
             });

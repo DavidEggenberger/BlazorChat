@@ -1,6 +1,7 @@
 ﻿using BlazorMLSA.Server.Data;
 using BlazorMLSA.Server.Hubs;
 using BlazorMLSA.Shared;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,7 @@ namespace BlazorMLSA.Server.Controllers
 {
     [Route("/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class Account : ControllerBase
     {
         private SignInManager<ApplicationUser> _signInManager;
