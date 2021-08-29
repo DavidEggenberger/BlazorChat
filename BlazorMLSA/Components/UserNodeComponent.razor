@@ -1,0 +1,74 @@
+﻿@inject HttpClient httpClient
+
+<div class="card">
+    <div class="card-body" style="height: 390px;">
+        <h2>YOU</h2>
+        <img width="150" src="@Node.UserDto.Image" />
+        @if (Node.SelectedUser is not null)
+        {
+            <h4>Selected: @Node.SelectedUser.Name</h4>
+        }
+        else
+        {
+            <h4>Select a User</h4>
+        }
+        <div style="display: flex; justify-content: space-between; padding: 0 5px;">
+            @code{
+                string message;
+            }
+            <input style="width: 60%; outline: none; border: none; border-radius: 3px; font-size: 18px;" @bind="message" @bind:event="oninput" />
+            <button @onclick='async () => await ChatAsync(Node.SelectedUser.Id, message)'>Chat</button>
+        </div>
+        @if (messages.Count > 0 && Node.SelectedUser is not null)
+        {
+            <div class="messagesContainer">
+                @foreach (var item in messages.Where(m => m.ReceiverId == Node.SelectedUser.Id || m.SenderId == Node.SelectedUser.Id))
+                {
+                    if (item.SenderId == Node.UserDto.Id)
+                    {
+                        <h9>You: @item.Content</h9>
+                    }
+                    else
+                    {
+                        <h9>@Node.SelectedUser.Name: @item.Content</h9>
+                    }
+                }
+            </div>
+        }
+    </div>
+    <div style="width: 100%; display: grid; place-items: center;">
+        @foreach (var port in Node.Ports)
+        {
+            <!-- Default ports -->
+            <PortRenderer Port="port" />
+        }
+    </div>
+</div>
+
+
+@code{
+    List<MessageDto> messages;
+    [CascadingParameter]
+    public HubConnection hubConnection { get; set; }
+    [Parameter]
+    public UserNode Node { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        messages = new List<MessageDto>();
+        hubConnection.On<MessageDto>("ReceiveMessage", message =>
+        {
+            messages.Add(message);
+            StateHasChanged();
+        });
+        hubConnection.On("Update", async () =>
+        {
+            messages = await httpClient.GetFromJsonAsync<List<MessageDto>>("Messages");
+        });
+    }
+    public async Task ChatAsync(string user, string messageText)
+    {
+        MessageDto message = new MessageDto { Content = messageText, SenderId = Node.UserDto.Id, ReceiverId = user };
+        messages.Add(message);
+        await hubConnection.SendAsync("Chat", message);
+    }
+}

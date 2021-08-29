@@ -1,0 +1,116 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+@inject IAccessTokenProvider tokenProvider
+@inject HttpClient httpClient
+
+<AuthorizeView>
+    <NotAuthorized>
+        <h3>Login to Chat!</h3>
+    </NotAuthorized>
+    <Authorized>
+        <div style="height: 100%; width: 100%;">
+            <CascadingValue Value="hubConnection">
+                <CascadingValue Value="Diagram">
+                    <DiagramCanvas></DiagramCanvas>
+                </CascadingValue>
+            </CascadingValue>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+
+@code{
+    [CascadingParameter]
+    public Task<AuthenticationState> authState { get; set; }
+    private HubConnection hubConnection;
+    private List<UserDto> OnlineUsers;
+    List<UserNode> UserNodes;
+    public Diagram Diagram { get; private set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        UserNodes = new List<UserNode>();
+        OnlineUsers = new List<UserDto>();
+        var options = new DiagramOptions
+        {
+            DeleteKey = "Delete",
+            DefaultNodeComponent = null,
+            AllowMultiSelection = true,
+            AllowPanning = false,
+            Zoom = new DiagramZoomOptions
+            {
+                Enabled = false
+            },
+            Links = new DiagramLinkOptions
+            {
+                DefaultColor = "white"
+            }
+        };
+        Diagram = new Diagram(options);
+        Diagram.Links.Added += b =>
+        {
+            b.TargetPortChanged += (bt, old, niw) =>
+            {
+                ((UserNode)bt.SourcePort.Parent).SelectedUser = ((ContactNode)bt.TargetPort.Parent).UserDto;
+                StateHasChanged();
+            };
+        };
+        Diagram.RegisterModelComponent<UserNode, UserNodeComponent>();
+        Diagram.RegisterModelComponent<ContactNode, ContactNodeComponent>();
+
+        ClaimsPrincipal cp;
+        if ((cp = (await authState).User).Identity.IsAuthenticated)
+        {
+            AccessToken token = new AccessToken();
+
+            (await tokenProvider.RequestAccessToken()).TryGetToken(out token);
+
+            if (token is not null)
+            {
+                hubConnection = new HubConnectionBuilder()
+                .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"), options =>
+                {
+                    options.AccessTokenProvider = async () => token.Value;
+                    Console.WriteLine(token.Value);
+                })
+                .Build();
+                hubConnection.On("Update", async () =>
+                {
+                    var allOnlineUsers = await httpClient.GetFromJsonAsync<List<UserDto>>("/OnlineUsers");
+
+                    Random rnd = new Random();
+                    foreach (var userDto in allOnlineUsers.Where(user => !OnlineUsers.Select(s => s.Name).Contains(user.Name)))
+                    {
+                        double width = Diagram.Container.Width / 5;
+                        double height = Diagram.Container.Height / 5;
+                        (double w, double y) = userDto switch
+                        {
+                            UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)Diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
+                            UserDto s when s.IDP.Contains("GitHub") => (rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
+                            _ => (3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
+                        };
+                        if(userDto.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
+                        {
+                            Diagram.Nodes.Add(new UserNode(new Point(w, y))
+                            {
+                                UserDto = userDto
+                            });
+                        }
+                        else
+                        {
+                            Diagram.Nodes.Add(new ContactNode(new Point(w, y))
+                            {
+                                UserDto = userDto
+                            });
+                        }
+
+                        OnlineUsers.Add(userDto);
+                    }
+                    StateHasChanged();
+                });
+            }
+            await hubConnection.StartAsync();
+            await hubConnection.InvokeAsync("NewOnlineUser");
+        }
+    }
+}

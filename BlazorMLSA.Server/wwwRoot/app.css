@@ -1,0 +1,77 @@
+﻿html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100vh;
+    margin: 0;
+    color: white;
+}
+button{
+    margin-top: 6px;
+    border-radius: 3px;
+    border: 2px solid white;
+    padding: 4px;
+    height: 30px;
+    color: white;
+    background-color: transparent;
+    outline: none;
+}
+input{
+    margin-top: 3px;
+    height: 30px;
+    border-radius: 3px;
+    outline: none;
+    border: none;
+    font-size: 24px;
+}
+.page {
+    height: 100vh;
+    background: linear-gradient(108deg, rgba(13,17,23,1) 0%, rgba(10,102,194,1) 100%);
+}
+
+    .page h1 {
+        margin: 0;
+        color: white;
+    }
+
+nav {
+    height: 80px;
+    display: flex;
+    padding: 15px;
+    justify-content: space-between;
+}
+
+    nav h1 {
+        margin: 0;
+    }
+
+    nav button, nav a {
+        display: block;
+        height: 28px;
+        width: 60px;
+        border-radius: 5px;
+        border: 3px solid white;
+        display: grid;
+        place-items: center;
+    }
+
+a {
+    color: white !important;
+}
+.main{
+    display: grid;
+    place-items: center;
+}
+.card {
+    padding: 15px;
+    width: 60vw;
+    border-radius: 5px;
+    border: 2px solid rgba(255, 255, 255, 0.18 );
+    background-color: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    display: grid;
+    place-items: center;
+}
+.FAForm {
+    display: flex;
+    flex-direction: column;
+    margin-left: 30px;
+}

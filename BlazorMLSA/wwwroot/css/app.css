@@ -1,0 +1,106 @@
+﻿html, body{
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100vh;
+    margin: 0;
+    color: white;
+}
+.page {
+    height: 100vh;
+    background: linear-gradient(108deg, rgba(13,17,23,1) 0%, rgba(10,102,194,1) 100%);
+}
+.page h1{
+    margin: 0;
+    font-size: 40px;
+}
+nav{
+    height: 80px;
+    display: flex;
+    padding: 15px;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+nav h1{
+    margin: 0;
+}
+    nav .LoginDisplay {
+        position: relative;
+        top: 10px;
+        right: 5px;
+        display: flex;
+        width: 360px;
+        justify-content: flex-end;
+    }
+    nav .LoginDisplay button{
+        margin-left: 15px;
+    }
+button, a{
+    display: block;
+    background-color: unset;
+    height: 32px;
+    font-size: 20px;
+    display: grid;
+    place-items: center;
+}
+button {
+    color: white;
+    border-radius: 5px;
+    border: 3px solid white;
+}
+a:focus, a:active, a{
+    color: white !important;
+}
+.main{
+    padding: 15px;
+    height: calc(100vh - 80px);
+    box-sizing: border-box;
+}
+.card-body {
+    height: 340px;
+    width: 230px;
+    border-radius: 5px;
+    border: 2px solid rgba(255, 255, 255, 0.18 );
+    background-color: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px;
+}
+.card-body h2{
+    font-size: 24px;
+    margin-bottom: 6px;
+    margin-top: 8px;
+}
+.card-body h4{
+    margin: 6px 0px 6px 0;
+}
+path{
+    stroke-width: 3;
+}
+.messagesContainer {
+    width: 90%;
+    height: auto;
+    margin: 5px;
+    border-radius: 3px;
+    border: 1px solid white;
+    background-color: rgba(255, 255, 255, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+.port.bottom {
+    height: 15px;
+    width: 30px;
+    background-color: white;
+    position: relative;
+    display: grid;
+    justify-content: center;
+    border-radius: 50%;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+}
+
+    .port.bottom:hover {
+        cursor: pointer;
+        border: 2px solid;
+    }

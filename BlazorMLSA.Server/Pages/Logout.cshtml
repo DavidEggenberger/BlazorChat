@@ -1,0 +1,12 @@
+﻿@page
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model BlazorMLSA.Server.Pages.LogoutModel
+@{
+    ViewData["Title"] = "Logout";
+}
+
+<h1>Logout @User.Identity.Name</h1>
+
+<form method="post">
+    <button type="submit">Logout</button>
+</form>
