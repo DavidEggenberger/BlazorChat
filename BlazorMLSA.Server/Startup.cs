@@ -5,11 +5,15 @@ using BlazorMLSA.Server.Utilities.LinkedInPicture;
 using BlazorMLSA.Server.Utilities.SignalR;
 using BlazorMLSA.Shared;
 using IdentityServer4.Models;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -43,57 +47,63 @@ namespace BlazorMLSA.Server
             services.AddSingleton<IUserIdProvider, EmailBasedUserIdProvider>();
             services.AddSingleton<List<UserDto>>();
             services.AddSingleton<List<MessageDto>>();
-
-            services.AddControllers();
-
-            services.AddRazorPages();
-            services.AddSignalR();
-
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
-
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
-
             services.AddHttpClient("github", client =>
             {
                 client.BaseAddress = new Uri("https://api.linkedin.com/v2");
             });
-
-            services.Configure<IdentityOptions>(options =>
+            services.AddControllers();
+            services.AddRazorPages();
+            services.AddSignalR();
+            services.Configure<ApiAuthorizationOptions>(options =>
             {
-                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+/ ";
+                options.ApiResources = new ApiResourceCollection
+                {
+                    new ApiResource
+                    {
+                        Name = "API",
+                        Scopes = new List<string> {"API"}
+                    }
+                };
             });
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(
+                    Configuration.GetConnectionString("DefaultConnection")));
 
-            services.Configure<CookieAuthenticationOptions>
-                (IdentityConstants.ApplicationScheme, op =>
+            services.AddAuthentication(o =>
             {
-                op.ExpireTimeSpan = TimeSpan.FromSeconds(10000);
-            });
-            services.Configure<CookieAuthenticationOptions>
-            (IdentityConstants.TwoFactorRememberMeScheme, o =>
+                o.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+                o.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+                o.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+            })
+                .AddIdentityCookies(o => { });
+            var identityService = services.AddIdentityCore<ApplicationUser>(o =>
             {
-                o.Cookie.Name = "app.2fa.rememberme";
-                o.ExpireTimeSpan = TimeSpan.FromSeconds(10);
-            });
+                o.Stores.MaxLengthForKeys = 128;
+            })
+                .AddDefaultTokenProviders()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+            identityService.AddSignInManager();
 
-            services.AddIdentityServer()
+            services.AddIdentityServer(options => 
+            {
+                
+            })
                 .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
                 {
                     options.Clients.Add(new IdentityServer4.Models.Client
                     {
                         ClientId = "BlazorClient",
                         AllowedGrantTypes = GrantTypes.Code,
+                        RequirePkce = true,
                         RequireClientSecret = false,
                         AllowedScopes = new List<string>
                         {
                             "openid",
                             "profile",
-                            "picture"
+                            "picture",
+                            "Write",
+                            "API"
                         },
-                        AccessTokenLifetime = 500,
                         RedirectUris = { "https://localhost:44372/authentication/login-callback" },
                         PostLogoutRedirectUris = { "https://localhost:44372" },
                         FrontChannelLogoutUri = "https://localhost:44372"
@@ -102,43 +112,67 @@ namespace BlazorMLSA.Server
                     {
                         Name = "picture",
                         DisplayName = "Picture",
-                        UserClaims = new List<string> { ClaimTypes.WindowsAccountName}
+                        UserClaims = new List<string> { "picture" }
                     });
-                    options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Very secure and long password!!!")), SecurityAlgorithms.HmacSha256);
-                })
-                .AddProfileService<ProfileService>();
+                    options.ApiScopes.Add(new ApiScope
+                    {
+                        Name = "Write",
+                    });
+                    var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("David Eggenberger Security key very long very secure")), SecurityAlgorithms.HmacSha256);
+                });
 
             services.AddAuthentication()
+                .AddIdentityServerJwt()
                 .AddLinkedIn(options =>
-                {
-                    options.ClientId = Configuration["LinkedIn:ClientId"];
-                    options.ClientSecret = Configuration["LinkedIn:ClientSecret"]; ;
-                    options.Scope.Add("r_liteprofile");
-                    options.Events.OnCreatingTicket = async context =>
-                    {
-                        HttpClient htp = context.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("github");
-                        htp.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
-                        var respone = await htp.GetStringAsync(htp.BaseAddress + "/me?projection=(id,profilePicture(displayImage~:playableStreams))");
-                        Root root = JsonSerializer.Deserialize<Root>(respone);
-                        context.Identity.AddClaim(new Claim("picture", root.profilePicture.DisplayImage.elements.Skip(1).First().identifiers.First().identifier));
-                    };
-                })
-                .AddGitHub(options =>
-                {
-                    options.ClientId = Configuration["GitHub:ClientId"];
-                    options.ClientSecret = Configuration["GitHub:ClientSecret"];
-                    options.Events.OnCreatingTicket = async context =>
-                    {
-                        string picUri = context.User.GetProperty("avatar_url").GetString();
-                        context.Identity.AddClaim(new Claim("picture", picUri));
-                    };
-                })
-                .AddIdentityServerJwt();
-
-            services.ConfigureApplicationCookie(options =>
+                 {
+                     options.ClientId = Configuration["LinkedIn:ClientId"];
+                     options.ClientSecret = Configuration["LinkedIn:ClientSecret"]; ;
+                     options.Scope.Add("r_liteprofile");
+                     options.Events.OnCreatingTicket = async context =>
+                     {
+                         HttpClient htp = context.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("github");
+                         htp.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+                         var respone = await htp.GetStringAsync(htp.BaseAddress + "/me?projection=(id,profilePicture(displayImage~:playableStreams))");
+                         Root root = JsonSerializer.Deserialize<Root>(respone);
+                         context.Identity.AddClaim(new Claim("picture", root.profilePicture.DisplayImage.elements.Skip(1).First().identifiers.First().identifier));
+                     };
+                 })
+                 .AddGitHub(options =>
+                 {
+                     options.ClientId = Configuration["GitHub:ClientId"];
+                     options.ClientSecret = Configuration["GitHub:ClientSecret"];
+                     options.Events.OnCreatingTicket = async context =>
+                     {
+                         string picUri = context.User.GetProperty("avatar_url").GetString();
+                         context.Identity.AddClaim(new Claim("picture", picUri));
+                     };
+                 })
+                 .AddPolicyScheme("ApplicationDefinedAuthentication", null, options =>
+                 {
+                     options.ForwardDefaultSelector = (context) =>
+                     {
+                         if (context.Request.Path.StartsWithSegments(new PathString("/api"), StringComparison.OrdinalIgnoreCase))
+                             return IdentityServerJwtConstants.IdentityServerJwtScheme;
+                         else
+                             return IdentityConstants.ApplicationScheme;
+                     };
+                 });
+            services.Configure<AuthenticationOptions>(options =>
             {
-                options.LogoutPath = "/Logout";
-                options.LoginPath = "/Login";
+                options.DefaultChallengeScheme = IdentityServerJwtConstants.IdentityServerJwtBearerScheme;
+                options.DefaultAuthenticateScheme = "ApplicationDefinedAuthentication";
+            });
+            services.Configure<JwtBearerOptions>(IdentityServerJwtConstants.IdentityServerJwtBearerScheme, options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidAudience = "API"
+                };
+            });
+            services.ConfigureApplicationCookie(config =>
+            {
+                config.LoginPath = "/Login";
+                config.LogoutPath = "/Logout";
             });
         }
 
@@ -150,9 +184,12 @@ namespace BlazorMLSA.Server
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
+            app.UseHsts();
+            app.UseHttpsRedirection();
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
+
+            app.UseRouting();
 
             app.UseIdentityServer();
             app.UseAuthentication();
@@ -160,8 +197,8 @@ namespace BlazorMLSA.Server
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<ChatHub>("/chathub").RequireAuthorization();
-                endpoints.MapControllers().RequireAuthorization();
+                endpoints.MapHub<ChatHub>("/chathub");
+                endpoints.MapControllers();
                 endpoints.MapRazorPages();
                 endpoints.MapFallbackToFile("index.html");
             });

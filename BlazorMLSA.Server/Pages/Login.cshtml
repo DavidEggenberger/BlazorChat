@@ -18,6 +18,12 @@
                 }
         </div>
     </form>
+
+    <form method="post" asp-route-returnurl="@Model.returnUrl" asp-page-handler="Local">
+        <input asp-for="@Model.Email"/>
+        <input asp-for="@Model.Password"/>
+        <button type="submit">Login</button>
+    </form>
 }
 
 

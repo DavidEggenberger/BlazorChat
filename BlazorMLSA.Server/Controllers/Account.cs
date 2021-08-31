@@ -47,7 +47,7 @@ namespace BlazorMLSA.Server.Controllers
                 }
             }
 
-            var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: false);
+            var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
             return signInResult switch
             {
                 Microsoft.AspNetCore.Identity.SignInResult { Succeeded: true} => Redirect(returnUrl),

@@ -62,7 +62,7 @@
         });
         hubConnection.On("Update", async () =>
         {
-            messages = await httpClient.GetFromJsonAsync<List<MessageDto>>("Messages");
+            messages = await httpClient.GetFromJsonAsync<List<MessageDto>>("api/Messages");
         });
     }
     public async Task ChatAsync(string user, string messageText)

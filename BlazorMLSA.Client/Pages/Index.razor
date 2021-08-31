@@ -75,8 +75,7 @@
                 .Build();
                 hubConnection.On("Update", async () =>
                 {
-                    var allOnlineUsers = await httpClient.GetFromJsonAsync<List<UserDto>>("/OnlineUsers");
-
+                    var allOnlineUsers = await httpClient.GetFromJsonAsync<List<UserDto>>("/api/OnlineUsers");
                     Random rnd = new Random();
                     foreach (var userDto in allOnlineUsers.Where(user => !OnlineUsers.Select(s => s.Name).Contains(user.Name)))
                     {
@@ -102,7 +101,6 @@
                                 UserDto = userDto
                             });
                         }
-
                         OnlineUsers.Add(userDto);
                     }
                     StateHasChanged();

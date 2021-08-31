@@ -1,4 +1,4 @@
-﻿@page
+﻿@page 
 @model BlazorMLSA.Server.Pages.ProfileModel
 @{
     ViewData["Title"] = "Profile";
@@ -7,6 +7,7 @@
 <div style="display: flex;">
     <img height="400" src="@Model.Base64" />
     <form class="FAForm" method="post">
+        <h2>Welcome: @User.Identity.Name</h2>
         <h3>Enable 2 Factor-Authentication by scanning the code with Google Authenticator</h3>
         <label>The code from the authenticator APP:</label>
         <input asp-for="@Model.AuthenticatorCode" />

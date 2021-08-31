@@ -34,9 +34,9 @@ namespace BlazorMLSA.Server.Utilities.IdentityServer
             }
             context.IssuedClaims = claims;
         }
-        public async Task IsActiveAsync(IsActiveContext context)
+        public Task IsActiveAsync(IsActiveContext context)
         {
-
+            return Task.FromResult(true);
         }
     }
 }
