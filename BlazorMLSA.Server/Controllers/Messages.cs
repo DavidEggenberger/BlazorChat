@@ -13,13 +13,19 @@ namespace BlazorMLSA.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class Messages : ControllerBase
+    public class MessagesController : ControllerBase
     {
-        public async Task<List<MessageDto>> Get([FromServices] List<MessageDto> messages, [FromServices] UserManager<ApplicationUser> userManager)
+        private List<MessageDto> Messages;
+        private UserManager<ApplicationUser> userManager;
+        public MessagesController(List<MessageDto> messages, UserManager<ApplicationUser> userManager)
+        {
+            Messages = messages;
+            this.userManager = userManager;
+        }
+        public async Task<List<MessageDto>> Get()
         {
             var id = userManager.GetUserId(User);
-            var v = await HttpContext.AuthenticateAsync();     
-            return messages.Where(m => m.ReceiverId == id || m.SenderId == id).ToList();
+            return Messages.Where(m => m.ReceiverId == id || m.SenderId == id).ToList();
         }
     }
 }

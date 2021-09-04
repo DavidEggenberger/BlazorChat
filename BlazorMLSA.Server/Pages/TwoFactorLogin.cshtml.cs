@@ -3,33 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BlazorMLSA.Server.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace BlazorMLSA.Server.Pages
 {
+    [AllowAnonymous]
     public class TwoFactorLoginModel : PageModel
     {
-        [BindProperty]
+        [BindProperty(SupportsGet = true)]
         public string returnUrl { get; set; }
         [BindProperty]
         public string authenticatorCode { get; set; }
-        public UserManager<ApplicationUser> UserManager { get; }
-        public SignInManager<ApplicationUser> SignInManager { get; }
+        private SignInManager<ApplicationUser> signInManager;
         public TwoFactorLoginModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
-            UserManager = userManager;
-            SignInManager = signInManager;
+            this.signInManager = signInManager;
         }
-
-        public void OnGet()
-        {
-        }
+        public void OnGet() { }
         public async Task<ActionResult> OnPostAsync()
         {
-            ApplicationUser user = await SignInManager.GetTwoFactorAuthenticationUserAsync();
-            var resutl = await SignInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, true, false);
+            ApplicationUser user = await signInManager.GetTwoFactorAuthenticationUserAsync();
+            var resutl = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, true, false);
             return Redirect("/");
         }
     }

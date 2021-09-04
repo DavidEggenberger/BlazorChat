@@ -20,16 +20,16 @@
 
 @code{
     [CascadingParameter]
-    public Task<AuthenticationState> authState { get; set; }
+    public Task<AuthenticationState> AuthState { get; set; }
     private HubConnection hubConnection;
-    private List<UserDto> OnlineUsers;
-    List<UserNode> UserNodes;
+    private List<UserDto> onlineUsers;
+    List<UserNode> userNodes;
     public Diagram Diagram { get; private set; }
 
     protected override async Task OnInitializedAsync()
     {
-        UserNodes = new List<UserNode>();
-        OnlineUsers = new List<UserDto>();
+        userNodes = new List<UserNode>();
+        onlineUsers = new List<UserDto>();
         var options = new DiagramOptions
         {
             DeleteKey = "Delete",
@@ -58,7 +58,7 @@
         Diagram.RegisterModelComponent<ContactNode, ContactNodeComponent>();
 
         ClaimsPrincipal cp;
-        if ((cp = (await authState).User).Identity.IsAuthenticated)
+        if ((cp = (await AuthState).User).Identity.IsAuthenticated)
         {
             AccessToken token = new AccessToken();
 
@@ -77,7 +77,7 @@
                 {
                     var allOnlineUsers = await httpClient.GetFromJsonAsync<List<UserDto>>("/api/OnlineUsers");
                     Random rnd = new Random();
-                    foreach (var userDto in allOnlineUsers.Where(user => !OnlineUsers.Select(s => s.Name).Contains(user.Name)))
+                    foreach (var userDto in allOnlineUsers.Where(user => !onlineUsers.Select(s => s.Name).Contains(user.Name)))
                     {
                         double width = Diagram.Container.Width / 5;
                         double height = Diagram.Container.Height / 5;
@@ -101,7 +101,7 @@
                                 UserDto = userDto
                             });
                         }
-                        OnlineUsers.Add(userDto);
+                        onlineUsers.Add(userDto);
                     }
                     StateHasChanged();
                 });

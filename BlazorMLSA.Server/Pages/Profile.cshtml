@@ -6,11 +6,24 @@
 
 <div style="display: flex;">
     <img height="400" src="@Model.Base64" />
-    <form class="FAForm" method="post">
+    <div class="FAForm">
         <h2>Welcome: @User.Identity.Name</h2>
-        <h3>Enable 2 Factor-Authentication by scanning the code with Google Authenticator</h3>
-        <label>The code from the authenticator APP:</label>
-        <input asp-for="@Model.AuthenticatorCode" />
-        <button type="submit">Enable 2FA</button>
-    </form>
+        @if (Model.TwoFAEnabled)
+        {
+            <form method="post" asp-page-handler="Disable">
+                <h3>You have 2 Factor Authentication Enabled</h3>
+                <label>Disable 2 Factor Authentication</label>
+                <button type="submit">Disable 2FA</button>
+            </form>        
+        }
+        else
+        {
+            <form method="post">
+                <h3>Enable 2 Factor-Authentication by scanning the code with Google Authenticator</h3>
+                <label>The code from the authenticator APP:</label>
+                <input asp-for="@Model.AuthenticatorCode" />
+                <button type="submit">Enable 2FA</button>
+            </form>         
+        }
+    </div>
 </div>

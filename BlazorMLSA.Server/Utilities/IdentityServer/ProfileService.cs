@@ -13,19 +13,19 @@ namespace BlazorMLSA.Server.Utilities.IdentityServer
 {
     public class ProfileService : IProfileService
     {
-        private readonly IUserClaimsPrincipalFactory<ApplicationUser> _claimsFactory;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserClaimsPrincipalFactory<ApplicationUser> ClaimsFactory;
+        private readonly UserManager<ApplicationUser> UserManager;
         public ProfileService(IUserClaimsPrincipalFactory<ApplicationUser> claimsFactory, UserManager<ApplicationUser> userManager)
         {
-            _claimsFactory = claimsFactory;
-            _userManager = userManager;
+            ClaimsFactory = claimsFactory;
+            UserManager = userManager;
         }
         public async Task GetProfileDataAsync(ProfileDataRequestContext context)
         {
             var sub = context.Subject.GetSubjectId();
-            var user = await _userManager.FindByIdAsync(sub);
+            var user = await UserManager.FindByIdAsync(sub);
 
-            var principal = await _claimsFactory.CreateAsync(user);
+            var principal = await ClaimsFactory.CreateAsync(user);
             var claims = principal.Claims.ToList();
 
             if (context.RequestedResources.ParsedScopes.Any(s => s.ParsedName.Contains("picture")))

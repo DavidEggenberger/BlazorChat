@@ -16,34 +16,32 @@ namespace BlazorMLSA.Server.Pages
 {
     public class ProfileModel : PageModel
     {
-        public UserManager<ApplicationUser> UserManager { get; }
-        public SignInManager<ApplicationUser> SignInManager { get; }
-        private readonly UrlEncoder _urlEncoder;
-        public ProfileModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, UrlEncoder urlEncoder)
-        {
-            UserManager = userManager;
-            SignInManager = signInManager;
-            _urlEncoder = urlEncoder;
-        }
-        public bool TwoFAEnabled { get; set; }
-        public ApplicationUser ApplicationUser { get; set; }
+        private UserManager<ApplicationUser> userManager;
+        private SignInManager<ApplicationUser> signInManager;
+        private UrlEncoder urlEncoder;
         [BindProperty]
         public string AuthenticatorCode { get; set; }
+        public ProfileModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, UrlEncoder urlEncoder)
+        {
+            this.userManager = userManager;
+            this.signInManager = signInManager;
+            this.urlEncoder = urlEncoder;
+        }
+        public bool TwoFAEnabled { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }    
         public string Base64 { get; set; }
         public async Task OnGet()
         {
-            ApplicationUser = await UserManager.GetUserAsync(User);
-            TwoFAEnabled = await UserManager.GetTwoFactorEnabledAsync(ApplicationUser);
-
-            var unformattedKey = await UserManager.GetAuthenticatorKeyAsync(ApplicationUser);
+            ApplicationUser = await userManager.GetUserAsync(User);
+            TwoFAEnabled = await userManager.GetTwoFactorEnabledAsync(ApplicationUser);
+            var unformattedKey = await userManager.GetAuthenticatorKeyAsync(ApplicationUser);
+            
             if (string.IsNullOrEmpty(unformattedKey))
             {
-                await UserManager.ResetAuthenticatorKeyAsync(ApplicationUser);
-                unformattedKey = await UserManager.GetAuthenticatorKeyAsync(ApplicationUser);
+                await userManager.ResetAuthenticatorKeyAsync(ApplicationUser);
+                unformattedKey = await userManager.GetAuthenticatorKeyAsync(ApplicationUser);
             }
-
             var AuthenticatorURI = GenerateQrCodeUri(unformattedKey);
-
             MemoryStream ms = new MemoryStream();
             QRCodeGenerator cod = new QRCodeGenerator();
             QRCodeData data = cod.CreateQrCode(AuthenticatorURI, QRCodeGenerator.ECCLevel.Q);
@@ -52,19 +50,23 @@ namespace BlazorMLSA.Server.Pages
             bmp.Save(ms, ImageFormat.Png);
             Base64 = "data:image/png;base64," + Convert.ToBase64String(ms.ToArray());
         }
-
         public async Task<ActionResult> OnPostAsync()
         {
-            ApplicationUser = await UserManager.GetUserAsync(User);
-
-            var is2faTokenValid = await UserManager.VerifyTwoFactorTokenAsync(
-                ApplicationUser, UserManager.Options.Tokens.AuthenticatorTokenProvider, AuthenticatorCode);
+            ApplicationUser = await userManager.GetUserAsync(User);
+            var is2faTokenValid = await userManager.VerifyTwoFactorTokenAsync(
+                ApplicationUser, userManager.Options.Tokens.AuthenticatorTokenProvider, AuthenticatorCode);
 
             if (is2faTokenValid)
             {
-                await UserManager.SetTwoFactorEnabledAsync(ApplicationUser, true);
+                await userManager.SetTwoFactorEnabledAsync(ApplicationUser, true);
             }
-
+            await signInManager.SignOutAsync();
+            return Redirect("/");
+        }
+        public async Task<ActionResult> OnPostDisable()
+        {
+            ApplicationUser = await userManager.GetUserAsync(User);           
+            await userManager.SetTwoFactorEnabledAsync(ApplicationUser, false);
             return Redirect("/");
         }
         private string GenerateQrCodeUri(string unformattedKey)
@@ -73,7 +75,7 @@ namespace BlazorMLSA.Server.Pages
 
             return string.Format(
                 AuthenticatorUriFormat,
-                _urlEncoder.Encode("Let's Chat!"),
+                urlEncoder.Encode("Let's Chat!"),
                 unformattedKey);
         }
     }

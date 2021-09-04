@@ -22,22 +22,20 @@ namespace BlazorMLSA.Client
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
 
-            builder.Services.AddHttpClient("BlazorASPCoreAuthIdentityServerClient.ServerAPI", client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+            builder.Services.AddHttpClient("ServerAPI", client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
                 .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
             // Supply HttpClient instances that include access tokens when making requests to the server project
-            builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("BlazorASPCoreAuthIdentityServerClient.ServerAPI"));
+            builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerAPI"));
 
             builder.Services.AddOidcAuthentication(options =>
             {
                 options.ProviderOptions.Authority = "https://localhost:44372";
                 options.ProviderOptions.ClientId = "BlazorClient";
                 options.ProviderOptions.ResponseType = "code";
-                options.ProviderOptions.DefaultScopes.Add("Write");
                 options.ProviderOptions.DefaultScopes.Add("profile");
-                options.ProviderOptions.DefaultScopes.Add("picture");
                 options.ProviderOptions.DefaultScopes.Add("API");
-                options.AuthenticationPaths.LogOutSucceededPath = "/";
+                options.AuthenticationPaths.LogOutCallbackPath = "/";
                 options.AuthenticationPaths.LogOutPath = "https://localhost:44372/logout";
                 options.AuthenticationPaths.RemoteProfilePath = "https://localhost:44372/profile";
                 options.AuthenticationPaths.RemoteRegisterPath = "https://localhost:44372/login";

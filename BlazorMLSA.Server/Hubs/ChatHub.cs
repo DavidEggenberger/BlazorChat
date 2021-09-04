@@ -16,13 +16,13 @@ namespace BlazorMLSA.Server.Hubs
     public class ChatHub : Hub
     {
         List<UserDto> OnlineUsers;
-        UserManager<ApplicationUser> userManager;
-        List<MessageDto> messageDtos;
-        public ChatHub(List<UserDto> OnlineUsers, List<MessageDto> messageDtos, UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> UserManager;
+        List<MessageDto> MessageDtos;
+        public ChatHub(List<UserDto> onlineUsers, List<MessageDto> messageDtos, UserManager<ApplicationUser> userManager)
         {
-            this.OnlineUsers = OnlineUsers;
-            this.userManager = userManager;
-            this.messageDtos = messageDtos;
+            OnlineUsers = onlineUsers;
+            UserManager = userManager;
+            MessageDtos = messageDtos;
         }
         public async Task SendMessage(string UserName, string message)
         {
@@ -31,7 +31,7 @@ namespace BlazorMLSA.Server.Hubs
         public async Task NewOnlineUser()
         {
             UserDto userDto = new UserDto { Name = Context.User.Identity.Name, IDP = Context.User.Claims.Where(c => c.Type == "idp").First().Value };
-            ApplicationUser appUser = await userManager.GetUserAsync(Context.User);
+            ApplicationUser appUser = await UserManager.GetUserAsync(Context.User);
             userDto.Image = appUser.PictureUri;
             userDto.Id = appUser.Id;
             if(OnlineUsers.Where(user => user.Name == userDto.Name).Count() == 0)
@@ -52,7 +52,7 @@ namespace BlazorMLSA.Server.Hubs
         }
         public async Task Chat(MessageDto message)
         {
-            messageDtos.Add(message);
+            MessageDtos.Add(message);
             await Clients.User(message.ReceiverId).SendAsync("ReceiveMessage", message);
         }
     }

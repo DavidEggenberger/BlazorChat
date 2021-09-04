@@ -12,13 +12,15 @@ namespace BlazorMLSA.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = IdentityServerJwtConstants.IdentityServerJwtBearerScheme)]
-    public class OnlineUsers : ControllerBase
+    public class OnlineUsersController : ControllerBase
     {
-        public List<UserDto> Get([FromServices] List<UserDto> userDtos)
+        private List<UserDto> userDtos;
+        public OnlineUsersController(List<UserDto> userDtos)
         {
-            var r = HttpContext.Request;
-            var user = User;
+            this.userDtos = userDtos;
+        }
+        public List<UserDto> Get()
+        {
             return userDtos;
         }
     }

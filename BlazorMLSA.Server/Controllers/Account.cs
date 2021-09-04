@@ -1,13 +1,7 @@
 ﻿using BlazorMLSA.Server.Data;
-using BlazorMLSA.Server.Hubs;
-using BlazorMLSA.Shared;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,20 +10,19 @@ namespace BlazorMLSA.Server.Controllers
     [Route("/[controller]")]
     [ApiController]
     [AllowAnonymous]
-    public class Account : ControllerBase
+    public class AccountController : ControllerBase
     {
-        private SignInManager<ApplicationUser> _signInManager;
-        private UserManager<ApplicationUser> _userManager;
-        public string returnUrl { get; set; }
-        public Account(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
+        private SignInManager<ApplicationUser> signInManager;
+        private UserManager<ApplicationUser> userManager;
+        public AccountController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
         {
-            _signInManager = signInManager;
-            _userManager = userManager;
+            this.signInManager = signInManager;
+            this.userManager = userManager;
         }
         public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null)
         {
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            var user = await _userManager.FindByNameAsync(info.Principal.Identity.Name);
+            var info = await signInManager.GetExternalLoginInfoAsync();
+            var user = await userManager.FindByNameAsync(info.Principal.Identity.Name);
 
             if (info is not null && user is null)
             {
@@ -38,16 +31,16 @@ namespace BlazorMLSA.Server.Controllers
                     UserName = info.Principal.Identity.Name,
                     PictureUri = info.Principal.Claims.Where(c => c.Type == "picture").First().Value
                 };
-                var result = await _userManager.CreateAsync(_user);
+                var result = await userManager.CreateAsync(_user);
                 if (result.Succeeded)
                 {
-                    result = await _userManager.AddLoginAsync(_user, info);
-                    await _signInManager.SignInAsync(_user, isPersistent: false, info.LoginProvider);
+                    result = await userManager.AddLoginAsync(_user, info);
+                    await signInManager.SignInAsync(_user, isPersistent: false, info.LoginProvider);
                     return LocalRedirect(returnUrl);
                 }
             }
 
-            var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: false);
             return signInResult switch
             {
                 Microsoft.AspNetCore.Identity.SignInResult { Succeeded: true} => Redirect(returnUrl),

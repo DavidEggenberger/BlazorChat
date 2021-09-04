@@ -1,6 +1,5 @@
 using BlazorMLSA.Server.Data;
 using BlazorMLSA.Server.Hubs;
-using BlazorMLSA.Server.Utilities.IdentityServer;
 using BlazorMLSA.Server.Utilities.LinkedInPicture;
 using BlazorMLSA.Server.Utilities.SignalR;
 using BlazorMLSA.Shared;
@@ -8,14 +7,11 @@ using IdentityServer4.Models;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -54,40 +50,26 @@ namespace BlazorMLSA.Server
             services.AddControllers();
             services.AddRazorPages();
             services.AddSignalR();
-            services.Configure<ApiAuthorizationOptions>(options =>
-            {
-                options.ApiResources = new ApiResourceCollection
-                {
-                    new ApiResource
-                    {
-                        Name = "API",
-                        Scopes = new List<string> {"API"}
-                    }
-                };
-            });
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
-
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            });
+                
             services.AddAuthentication(o =>
             {
-                o.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-                o.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
                 o.DefaultSignInScheme = IdentityConstants.ExternalScheme;
             })
                 .AddIdentityCookies(o => { });
             var identityService = services.AddIdentityCore<ApplicationUser>(o =>
             {
+                o.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+/ ";
                 o.Stores.MaxLengthForKeys = 128;
             })
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             identityService.AddSignInManager();
 
-            services.AddIdentityServer(options => 
-            {
-                
-            })
+            services.AddIdentityServer()
                 .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
                 {
                     options.Clients.Add(new IdentityServer4.Models.Client
@@ -100,24 +82,20 @@ namespace BlazorMLSA.Server
                         {
                             "openid",
                             "profile",
-                            "picture",
-                            "Write",
                             "API"
                         },
                         RedirectUris = { "https://localhost:44372/authentication/login-callback" },
                         PostLogoutRedirectUris = { "https://localhost:44372" },
                         FrontChannelLogoutUri = "https://localhost:44372"
                     });
-                    options.IdentityResources.Add(new IdentityResource
+                    options.ApiResources = new ApiResourceCollection
                     {
-                        Name = "picture",
-                        DisplayName = "Picture",
-                        UserClaims = new List<string> { "picture" }
-                    });
-                    options.ApiScopes.Add(new ApiScope
-                    {
-                        Name = "Write",
-                    });
+                        new ApiResource
+                        {
+                            Name = "API",
+                            Scopes = new List<string> {"API"}
+                        }
+                    };
                     var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("David Eggenberger Security key very long very secure")), SecurityAlgorithms.HmacSha256);
                 });
 
@@ -137,7 +115,7 @@ namespace BlazorMLSA.Server
                          context.Identity.AddClaim(new Claim("picture", root.profilePicture.DisplayImage.elements.Skip(1).First().identifiers.First().identifier));
                      };
                  })
-                 .AddGitHub(options =>
+                .AddGitHub(options =>
                  {
                      options.ClientId = Configuration["GitHub:ClientId"];
                      options.ClientSecret = Configuration["GitHub:ClientSecret"];
@@ -147,7 +125,7 @@ namespace BlazorMLSA.Server
                          context.Identity.AddClaim(new Claim("picture", picUri));
                      };
                  })
-                 .AddPolicyScheme("ApplicationDefinedAuthentication", null, options =>
+                .AddPolicyScheme("ApplicationDefinedAuthentication", null, options =>
                  {
                      options.ForwardDefaultSelector = (context) =>
                      {
@@ -174,6 +152,10 @@ namespace BlazorMLSA.Server
                 config.LoginPath = "/Login";
                 config.LogoutPath = "/Logout";
             });
+            services.Configure<AntiforgeryOptions>(options =>
+            {
+                options.Cookie.Name = "AntiforgeryCookie";
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -197,9 +179,9 @@ namespace BlazorMLSA.Server
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<ChatHub>("/chathub");
-                endpoints.MapControllers();
-                endpoints.MapRazorPages();
+                endpoints.MapHub<ChatHub>("/chathub").RequireAuthorization();
+                endpoints.MapControllers().RequireAuthorization();
+                endpoints.MapRazorPages().RequireAuthorization();
                 endpoints.MapFallbackToFile("index.html");
             });
         }
