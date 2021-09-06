@@ -19,14 +19,16 @@ namespace BlazorMLSA.Server.Pages
         private UserManager<ApplicationUser> userManager;
         private SignInManager<ApplicationUser> signInManager;
         private UrlEncoder urlEncoder;
-        [BindProperty]
-        public string AuthenticatorCode { get; set; }
         public ProfileModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, UrlEncoder urlEncoder)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.urlEncoder = urlEncoder;
         }
+        [BindProperty]
+        public string AuthenticatorCode { get; set; }
+        [TempData]
+        public string[] RecoveryCodes { get; set; }
         public bool TwoFAEnabled { get; set; }
         public ApplicationUser ApplicationUser { get; set; }    
         public string Base64 { get; set; }
@@ -60,6 +62,13 @@ namespace BlazorMLSA.Server.Pages
             {
                 await userManager.SetTwoFactorEnabledAsync(ApplicationUser, true);
             }
+
+            if(await userManager.CountRecoveryCodesAsync(ApplicationUser) == 0)
+            {
+                RecoveryCodes = (await userManager.GenerateNewTwoFactorRecoveryCodesAsync(ApplicationUser, 3)).ToArray();
+                return RedirectToPage("/Profile");
+            }
+
             await signInManager.SignOutAsync();
             return Redirect("/");
         }

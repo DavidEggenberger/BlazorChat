@@ -1,0 +1,10 @@
+﻿@page
+@model BlazorMLSA.Server.Pages.RecoveryCodeLoginModel
+@{
+}
+
+<form method="post">
+    <label>Login with recovery codes instead:</label>
+    <input asp-for="@Model.recoveryCode" />
+    <button>Login</button>
+</form>

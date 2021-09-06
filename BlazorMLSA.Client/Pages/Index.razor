@@ -10,7 +10,7 @@
     <Authorized>
         <div style="height: 100%; width: 100%;">
             <CascadingValue Value="hubConnection">
-                <CascadingValue Value="Diagram">
+                <CascadingValue Value="diagram">
                     <DiagramCanvas></DiagramCanvas>
                 </CascadingValue>
             </CascadingValue>
@@ -23,8 +23,8 @@
     public Task<AuthenticationState> AuthState { get; set; }
     private HubConnection hubConnection;
     private List<UserDto> onlineUsers;
-    List<UserNode> userNodes;
-    public Diagram Diagram { get; private set; }
+    private List<UserNode> userNodes;
+    private Diagram diagram;
 
     protected override async Task OnInitializedAsync()
     {
@@ -45,8 +45,8 @@
                 DefaultColor = "white"
             }
         };
-        Diagram = new Diagram(options);
-        Diagram.Links.Added += b =>
+        diagram = new Diagram(options);
+        diagram.Links.Added += b =>
         {
             b.TargetPortChanged += (bt, old, niw) =>
             {
@@ -54,8 +54,8 @@
                 StateHasChanged();
             };
         };
-        Diagram.RegisterModelComponent<UserNode, UserNodeComponent>();
-        Diagram.RegisterModelComponent<ContactNode, ContactNodeComponent>();
+        diagram.RegisterModelComponent<UserNode, UserNodeComponent>();
+        diagram.RegisterModelComponent<ContactNode, ContactNodeComponent>();
 
         ClaimsPrincipal cp;
         if ((cp = (await AuthState).User).Identity.IsAuthenticated)
@@ -79,24 +79,24 @@
                     Random rnd = new Random();
                     foreach (var userDto in allOnlineUsers.Where(user => !onlineUsers.Select(s => s.Name).Contains(user.Name)))
                     {
-                        double width = Diagram.Container.Width / 5;
-                        double height = Diagram.Container.Height / 5;
+                        double width = diagram.Container.Width / 5;
+                        double height = diagram.Container.Height / 5;
                         (double w, double y) = userDto switch
                         {
-                            UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)Diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
+                            UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
                             UserDto s when s.IDP.Contains("GitHub") => (rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
                             _ => (3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
                         };
                         if(userDto.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
                         {
-                            Diagram.Nodes.Add(new UserNode(new Point(w, y))
+                            diagram.Nodes.Add(new UserNode(new Point(w, y))
                             {
                                 UserDto = userDto
                             });
                         }
                         else
                         {
-                            Diagram.Nodes.Add(new ContactNode(new Point(w, y))
+                            diagram.Nodes.Add(new ContactNode(new Point(w, y))
                             {
                                 UserDto = userDto
                             });

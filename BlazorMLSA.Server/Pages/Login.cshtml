@@ -6,7 +6,6 @@
     ViewData["Title"] = "Login";
 }
 
-
 <h3>Choose a social log-in:</h3>
 @{
     var providers = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();

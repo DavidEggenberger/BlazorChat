@@ -33,7 +33,6 @@ namespace BlazorMLSA.Client
                 options.ProviderOptions.Authority = "https://localhost:44372";
                 options.ProviderOptions.ClientId = "BlazorClient";
                 options.ProviderOptions.ResponseType = "code";
-                options.ProviderOptions.DefaultScopes.Add("profile");
                 options.ProviderOptions.DefaultScopes.Add("API");
                 options.AuthenticationPaths.LogOutCallbackPath = "/";
                 options.AuthenticationPaths.LogOutPath = "https://localhost:44372/logout";

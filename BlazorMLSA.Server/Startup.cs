@@ -1,5 +1,6 @@
 using BlazorMLSA.Server.Data;
 using BlazorMLSA.Server.Hubs;
+using BlazorMLSA.Server.Utilities.IdentityServer;
 using BlazorMLSA.Server.Utilities.LinkedInPicture;
 using BlazorMLSA.Server.Utilities.SignalR;
 using BlazorMLSA.Shared;
@@ -12,6 +13,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +29,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace BlazorMLSA.Server
 {
@@ -97,7 +101,8 @@ namespace BlazorMLSA.Server
                         }
                     };
                     var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("David Eggenberger Security key very long very secure")), SecurityAlgorithms.HmacSha256);
-                });
+                })
+                .AddProfileService<ProfileService>();
 
             services.AddAuthentication()
                 .AddIdentityServerJwt()
@@ -119,10 +124,11 @@ namespace BlazorMLSA.Server
                  {
                      options.ClientId = Configuration["GitHub:ClientId"];
                      options.ClientSecret = Configuration["GitHub:ClientSecret"];
-                     options.Events.OnCreatingTicket = async context =>
+                     options.Events.OnCreatingTicket = context =>
                      {
                          string picUri = context.User.GetProperty("avatar_url").GetString();
                          context.Identity.AddClaim(new Claim("picture", picUri));
+                         return Task.CompletedTask;
                      };
                  })
                 .AddPolicyScheme("ApplicationDefinedAuthentication", null, options =>
@@ -156,6 +162,7 @@ namespace BlazorMLSA.Server
             {
                 options.Cookie.Name = "AntiforgeryCookie";
             });
+            services.Configure<CookieTempDataProviderOptions>(options => { options.Cookie.Name = "TemporaryDataCookie"; });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

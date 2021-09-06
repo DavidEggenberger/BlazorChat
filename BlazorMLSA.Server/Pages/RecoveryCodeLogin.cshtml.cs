@@ -8,24 +8,24 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace BlazorMLSA.Server.Pages
 {
     [AllowAnonymous]
-    public class TwoFactorLoginModel : PageModel
+    public class RecoveryCodeLoginModel : PageModel
     {
         private SignInManager<ApplicationUser> signInManager;
-        public TwoFactorLoginModel(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public RecoveryCodeLoginModel(SignInManager<ApplicationUser> signInManager)
         {
             this.signInManager = signInManager;
         }
 
-        [BindProperty(SupportsGet = true)]
-        public string returnUrl { get; set; }
         [BindProperty]
-        public string authenticatorCode { get; set; }
-        
-        public void OnGet() { }
-        public async Task<ActionResult> OnPostAsync()
+        public string recoveryCode { get; set; }
+        public void OnGet()
+        {
+        }
+
+        public async Task<ActionResult> OnPost()
         {
             ApplicationUser user = await signInManager.GetTwoFactorAuthenticationUserAsync();
-            var resutl = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, true, false);
+            var resutl = await signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
             return Redirect("/");
         }
     }

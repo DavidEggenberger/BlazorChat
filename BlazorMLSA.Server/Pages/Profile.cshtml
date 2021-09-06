@@ -12,6 +12,14 @@
         {
             <form method="post" asp-page-handler="Disable">
                 <h3>You have 2 Factor Authentication Enabled</h3>
+                @if (Model.RecoveryCodes is not null)
+                {
+                    <h3>Here are your Recovery Codes</h3>
+                    foreach (string code in Model.RecoveryCodes)
+                    {
+                        <p>@code</p>
+                    }
+                }
                 <label>Disable 2 Factor Authentication</label>
                 <button type="submit">Disable 2FA</button>
             </form>        
