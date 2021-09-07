@@ -58,11 +58,49 @@ namespace BlazorMLSA.Server
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
-                
-            services.AddAuthentication(o =>
+
+            services.AddAuthentication(options =>
             {
-                o.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+                options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+                options.DefaultChallengeScheme = IdentityServerJwtConstants.IdentityServerJwtBearerScheme;
+                options.DefaultAuthenticateScheme = "ApplicationDefinedAuthentication";
             })
+                .AddIdentityServerJwt()
+                .AddLinkedIn(options =>
+                {
+                    options.ClientId = Configuration["LinkedIn:ClientId"];
+                    options.ClientSecret = Configuration["LinkedIn:ClientSecret"]; ;
+                    options.Scope.Add("r_liteprofile");
+                    options.Events.OnCreatingTicket = async context =>
+                    {
+                        HttpClient htp = context.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("github");
+                        htp.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+                        var respone = await htp.GetStringAsync(htp.BaseAddress + "/me?projection=(id,profilePicture(displayImage~:playableStreams))");
+                        Root root = JsonSerializer.Deserialize<Root>(respone);
+                        context.Identity.AddClaim(new Claim("picture", root.profilePicture.DisplayImage.elements.Skip(1).First().identifiers.First().identifier));
+                    };
+                })
+                .AddGitHub(options =>
+                {
+                    options.ClientId = Configuration["GitHub:ClientId"];
+                    options.ClientSecret = Configuration["GitHub:ClientSecret"];
+                    options.Events.OnCreatingTicket = context =>
+                    {
+                        string picUri = context.User.GetProperty("avatar_url").GetString();
+                        context.Identity.AddClaim(new Claim("picture", picUri));
+                        return Task.CompletedTask;
+                    };
+                })
+                .AddPolicyScheme("ApplicationDefinedAuthentication", null, options =>
+                {
+                    options.ForwardDefaultSelector = (context) =>
+                    {
+                        if (context.Request.Path.StartsWithSegments(new PathString("/api"), StringComparison.OrdinalIgnoreCase))
+                            return IdentityServerJwtConstants.IdentityServerJwtScheme;
+                        else
+                            return IdentityConstants.ApplicationScheme;
+                    };
+                })
                 .AddIdentityCookies(o => { });
             var identityService = services.AddIdentityCore<ApplicationUser>(o =>
             {
@@ -104,48 +142,6 @@ namespace BlazorMLSA.Server
                 })
                 .AddProfileService<ProfileService>();
 
-            services.AddAuthentication()
-                .AddIdentityServerJwt()
-                .AddLinkedIn(options =>
-                 {
-                     options.ClientId = Configuration["LinkedIn:ClientId"];
-                     options.ClientSecret = Configuration["LinkedIn:ClientSecret"]; ;
-                     options.Scope.Add("r_liteprofile");
-                     options.Events.OnCreatingTicket = async context =>
-                     {
-                         HttpClient htp = context.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("github");
-                         htp.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
-                         var respone = await htp.GetStringAsync(htp.BaseAddress + "/me?projection=(id,profilePicture(displayImage~:playableStreams))");
-                         Root root = JsonSerializer.Deserialize<Root>(respone);
-                         context.Identity.AddClaim(new Claim("picture", root.profilePicture.DisplayImage.elements.Skip(1).First().identifiers.First().identifier));
-                     };
-                 })
-                .AddGitHub(options =>
-                 {
-                     options.ClientId = Configuration["GitHub:ClientId"];
-                     options.ClientSecret = Configuration["GitHub:ClientSecret"];
-                     options.Events.OnCreatingTicket = context =>
-                     {
-                         string picUri = context.User.GetProperty("avatar_url").GetString();
-                         context.Identity.AddClaim(new Claim("picture", picUri));
-                         return Task.CompletedTask;
-                     };
-                 })
-                .AddPolicyScheme("ApplicationDefinedAuthentication", null, options =>
-                 {
-                     options.ForwardDefaultSelector = (context) =>
-                     {
-                         if (context.Request.Path.StartsWithSegments(new PathString("/api"), StringComparison.OrdinalIgnoreCase))
-                             return IdentityServerJwtConstants.IdentityServerJwtScheme;
-                         else
-                             return IdentityConstants.ApplicationScheme;
-                     };
-                 });
-            services.Configure<AuthenticationOptions>(options =>
-            {
-                options.DefaultChallengeScheme = IdentityServerJwtConstants.IdentityServerJwtBearerScheme;
-                options.DefaultAuthenticateScheme = "ApplicationDefinedAuthentication";
-            });
             services.Configure<JwtBearerOptions>(IdentityServerJwtConstants.IdentityServerJwtBearerScheme, options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
