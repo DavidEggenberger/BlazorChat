@@ -24,10 +24,6 @@ namespace BlazorMLSA.Server.Hubs
             UserManager = userManager;
             MessageDtos = messageDtos;
         }
-        public async Task SendMessage(string UserName, string message)
-        {
-            await Clients.User(UserName).SendAsync("ReceiveMessage", message);
-        }
         public async Task NewOnlineUser()
         {
             UserDto userDto = new UserDto { Name = Context.User.Identity.Name, IDP = Context.User.Claims.Where(c => c.Type == "idp").First().Value };
@@ -37,9 +33,8 @@ namespace BlazorMLSA.Server.Hubs
             if(OnlineUsers.Where(user => user.Name == userDto.Name).Count() == 0)
             {
                 OnlineUsers.Add(userDto);
+                await Clients.All.SendAsync("Update");
             }
-
-            await Clients.All.SendAsync("Update");
         }
         public override async Task OnDisconnectedAsync(Exception ex)
         {
@@ -47,8 +42,8 @@ namespace BlazorMLSA.Server.Hubs
             if (OnlineUsers.Where(user => user.Name == userDto.Name).Count() == 1)
             {
                 OnlineUsers.Remove(OnlineUsers.Where(s => s.Name == userDto.Name).First());
-            }         
-            await Clients.All.SendAsync("Update", userDto);
+                await Clients.All.SendAsync("Update", userDto);
+            }
         }
         public async Task Chat(MessageDto message)
         {

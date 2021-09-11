@@ -19,7 +19,7 @@ namespace BlazorMLSA.Server.Controllers
             this.signInManager = signInManager;
             this.userManager = userManager;
         }
-        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null)
+        public async Task<IActionResult> ExternalLoginCallback(string ReturnUrl = null)
         {
             var info = await signInManager.GetExternalLoginInfoAsync();
             var user = await userManager.FindByNameAsync(info.Principal.Identity.Name);
@@ -36,15 +36,15 @@ namespace BlazorMLSA.Server.Controllers
                 {
                     result = await userManager.AddLoginAsync(_user, info);
                     await signInManager.SignInAsync(_user, isPersistent: false, info.LoginProvider);
-                    return LocalRedirect(returnUrl);
+                    return LocalRedirect(ReturnUrl);
                 }
             }
 
             var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: false);
             return signInResult switch
             {
-                Microsoft.AspNetCore.Identity.SignInResult { Succeeded: true} => Redirect(returnUrl),
-                Microsoft.AspNetCore.Identity.SignInResult { RequiresTwoFactor: true } => Redirect($"TwoFactorLogin?returnUrl={returnUrl}"),
+                Microsoft.AspNetCore.Identity.SignInResult { Succeeded: true} => Redirect(ReturnUrl),
+                Microsoft.AspNetCore.Identity.SignInResult { RequiresTwoFactor: true } => RedirectToPage("/TwoFactorLogin", new { ReturnUrl = ReturnUrl }),
                 _ => Redirect("/")
             };
         }

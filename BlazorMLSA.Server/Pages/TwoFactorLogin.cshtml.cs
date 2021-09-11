@@ -17,15 +17,18 @@ namespace BlazorMLSA.Server.Pages
         }
 
         [BindProperty(SupportsGet = true)]
-        public string returnUrl { get; set; }
+        public string ReturnUrl { get; set; }
         [BindProperty]
         public string authenticatorCode { get; set; }
         
         public void OnGet() { }
         public async Task<ActionResult> OnPostAsync()
         {
-            ApplicationUser user = await signInManager.GetTwoFactorAuthenticationUserAsync();
-            var resutl = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, true, false);
+            var signInResult = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, true, false);
+            if (signInResult.Succeeded)
+            {
+                return LocalRedirect(ReturnUrl);
+            }
             return Redirect("/");
         }
     }

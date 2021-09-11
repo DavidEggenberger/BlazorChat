@@ -16,6 +16,8 @@ namespace BlazorMLSA.Server.Pages
             this.signInManager = signInManager;
         }
 
+        [BindProperty(SupportsGet = true)]
+        public string ReturnUrl { get; set; }
         [BindProperty]
         public string recoveryCode { get; set; }
         public void OnGet()
@@ -24,8 +26,11 @@ namespace BlazorMLSA.Server.Pages
 
         public async Task<ActionResult> OnPost()
         {
-            ApplicationUser user = await signInManager.GetTwoFactorAuthenticationUserAsync();
-            var resutl = await signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
+            var signInResult = await signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
+            if (signInResult.Succeeded)
+            {
+                return Redirect(ReturnUrl);
+            }
             return Redirect("/");
         }
     }
