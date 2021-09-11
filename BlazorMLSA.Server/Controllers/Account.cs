@@ -43,7 +43,7 @@ namespace BlazorMLSA.Server.Controllers
             var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: false);
             return signInResult switch
             {
-                Microsoft.AspNetCore.Identity.SignInResult { Succeeded: true} => Redirect(ReturnUrl),
+                Microsoft.AspNetCore.Identity.SignInResult { Succeeded: true} => LocalRedirect(ReturnUrl),
                 Microsoft.AspNetCore.Identity.SignInResult { RequiresTwoFactor: true } => RedirectToPage("/TwoFactorLogin", new { ReturnUrl = ReturnUrl }),
                 _ => Redirect("/")
             };

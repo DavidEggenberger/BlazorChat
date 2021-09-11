@@ -29,7 +29,7 @@ namespace BlazorMLSA.Server.Pages
             var signInResult = await signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
             if (signInResult.Succeeded)
             {
-                return Redirect(ReturnUrl);
+                return LocalRedirect(ReturnUrl);
             }
             return Redirect("/");
         }

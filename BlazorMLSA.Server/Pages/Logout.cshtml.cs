@@ -17,6 +17,9 @@ namespace BlazorMLSA.Server.Pages
         {
             signInManager = _signInManager;
         }
+
+        [BindProperty(SupportsGet = true)]
+        public string ReturnUrl { get; set; }
         public async Task<ActionResult> OnPostAsync()
         {
             await signInManager.SignOutAsync();
