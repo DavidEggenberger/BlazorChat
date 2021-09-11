@@ -1,4 +1,6 @@
-﻿using BlazorMLSA.Shared;
+﻿using BlazorMLSA.Server.Data.Chat;
+using BlazorMLSA.Server.Data.Identity;
+using BlazorMLSA.Shared;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -14,14 +16,30 @@ namespace BlazorMLSA.Server.Controllers
     [ApiController]
     public class OnlineUsersController : ControllerBase
     {
-        private List<UserDto> userDtos;
-        public OnlineUsersController(List<UserDto> userDtos)
+        private ChatContext chatContext;
+        private IdentityDbContext identityDbContext;
+        public OnlineUsersController(ChatContext chatContext, IdentityDbContext identityDbContext)
         {
-            this.userDtos = userDtos;
+            this.chatContext = chatContext;
+            this.identityDbContext = identityDbContext;
         }
-        public List<UserDto> Get()
+        public IEnumerable<UserDto> Get()
         {
-            return userDtos;
+            List<ApplicationUser> applicationUsers = identityDbContext.Users.ToList();
+            return chatContext.Users
+                .Where(user => user.IsOnline)
+                .ToList()
+                .Select(user => 
+                {
+                    ApplicationUser applicationUser = applicationUsers.Find(appUser => new Guid(appUser.Id) == user.Id);
+                    return new UserDto
+                    {
+                        Id = user.Id.ToString(),
+                        IDP = identityDbContext.UserLogins.Where(userLogin => userLogin.UserId == user.Id.ToString()).First().LoginProvider,
+                        Image = applicationUser.PictureUri,
+                        Name = applicationUser.UserName
+                    };
+                });
         }
     }
 }

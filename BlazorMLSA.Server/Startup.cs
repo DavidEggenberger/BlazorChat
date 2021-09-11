@@ -1,4 +1,6 @@
 using BlazorMLSA.Server.Data;
+using BlazorMLSA.Server.Data.Chat;
+using BlazorMLSA.Server.Data.Identity;
 using BlazorMLSA.Server.Hubs;
 using BlazorMLSA.Server.Utilities.IdentityServer;
 using BlazorMLSA.Server.Utilities.LinkedInPicture;
@@ -45,8 +47,6 @@ namespace BlazorMLSA.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IUserIdProvider, EmailBasedUserIdProvider>();
-            services.AddSingleton<List<UserDto>>();
-            services.AddSingleton<List<MessageDto>>();
             services.AddHttpClient("github", client =>
             {
                 client.BaseAddress = new Uri("https://api.linkedin.com/v2");
@@ -54,7 +54,12 @@ namespace BlazorMLSA.Server
             services.AddControllers();
             services.AddRazorPages();
             services.AddSignalR();
-            services.AddDbContext<ApplicationDbContext>(options =>
+
+            services.AddDbContext<IdentityDbContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            });
+            services.AddDbContext<ChatContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
@@ -108,11 +113,11 @@ namespace BlazorMLSA.Server
                 o.Stores.MaxLengthForKeys = 128;
             })
                 .AddDefaultTokenProviders()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddEntityFrameworkStores<IdentityDbContext>();
             identityService.AddSignInManager();
 
             services.AddIdentityServer()
-                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
+                .AddApiAuthorization<ApplicationUser, IdentityDbContext>(options =>
                 {
                     options.Clients.Add(new IdentityServer4.Models.Client
                     {

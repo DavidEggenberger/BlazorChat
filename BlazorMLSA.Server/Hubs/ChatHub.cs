@@ -1,4 +1,6 @@
 ﻿using BlazorMLSA.Server.Data;
+using BlazorMLSA.Server.Data.Chat;
+using BlazorMLSA.Server.Data.Identity;
 using BlazorMLSA.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,39 +17,69 @@ namespace BlazorMLSA.Server.Hubs
     [Authorize]
     public class ChatHub : Hub
     {
-        List<UserDto> OnlineUsers;
-        UserManager<ApplicationUser> UserManager;
-        List<MessageDto> MessageDtos;
-        public ChatHub(List<UserDto> onlineUsers, List<MessageDto> messageDtos, UserManager<ApplicationUser> userManager)
+        private ChatContext chatContext;
+        private UserManager<ApplicationUser> userManager;
+        public ChatHub(UserManager<ApplicationUser> userManager, ChatContext chatContext)
         {
-            OnlineUsers = onlineUsers;
-            UserManager = userManager;
-            MessageDtos = messageDtos;
+            this.userManager = userManager;
+            this.chatContext = chatContext;
         }
         public async Task NewOnlineUser()
         {
-            UserDto userDto = new UserDto { Name = Context.User.Identity.Name, IDP = Context.User.Claims.Where(c => c.Type == "idp").First().Value };
-            ApplicationUser appUser = await UserManager.GetUserAsync(Context.User);
-            userDto.Image = appUser.PictureUri;
-            userDto.Id = appUser.Id;
-            if(OnlineUsers.Where(user => user.Name == userDto.Name).Count() == 0)
+            ApplicationUser appUser = await userManager.GetUserAsync(Context.User);
+            if(chatContext.Users.Any(user => user.Id == new Guid(appUser.Id)) is false)
             {
-                OnlineUsers.Add(userDto);
+                chatContext.Users.Add(new User
+                {
+                    Id = new Guid(appUser.Id),
+                    IsOnline = true,
+                    TabsOpen = 1
+                });
+                await chatContext.SaveChangesAsync();
                 await Clients.All.SendAsync("Update");
+                return;
             }
+            User user = chatContext.Users.Find(new Guid(appUser.Id));
+            if(user.IsOnline is false)
+            {
+                user.IsOnline = true;
+                user.TabsOpen = 1;
+                await Clients.All.SendAsync("Update");
+                await chatContext.SaveChangesAsync();
+                return;
+            }
+            if (user.IsOnline)
+            {
+                user.TabsOpen++;
+            }
+            await chatContext.SaveChangesAsync();
         }
         public override async Task OnDisconnectedAsync(Exception ex)
         {
-            UserDto userDto = new UserDto { Name = Context.User.Identity.Name };
-            if (OnlineUsers.Where(user => user.Name == userDto.Name).Count() == 1)
+            ApplicationUser appUser = await userManager.GetUserAsync(Context.User);
+            User user;
+            if ((user = chatContext.Users.Find(new Guid(appUser.Id))) != null)
             {
-                OnlineUsers.Remove(OnlineUsers.Where(s => s.Name == userDto.Name).First());
-                await Clients.All.SendAsync("Update", userDto);
+                if(user.TabsOpen > 0)
+                {
+                    user.TabsOpen--;
+                }
+                if(user.TabsOpen == 0)
+                {
+                    user.IsOnline = false;
+                }
+                await chatContext.SaveChangesAsync();
+                await Clients.All.SendAsync("Update");
             }
         }
         public async Task Chat(MessageDto message)
         {
-            MessageDtos.Add(message);
+            chatContext.Messages.Add(new Message
+            {
+                Text = message.Content,
+                ReceiverId = new Guid(message.ReceiverId),
+                SenderId = new Guid(message.SenderId)
+            });
             await Clients.User(message.ReceiverId).SendAsync("ReceiveMessage", message);
         }
     }

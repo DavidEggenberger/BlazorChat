@@ -1,9 +1,12 @@
 ﻿using BlazorMLSA.Server.Data;
+using BlazorMLSA.Server.Data.Chat;
+using BlazorMLSA.Server.Data.Identity;
 using BlazorMLSA.Shared;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,17 +18,24 @@ namespace BlazorMLSA.Server.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        private List<MessageDto> Messages;
+        private ChatContext chatContext;
         private UserManager<ApplicationUser> userManager;
-        public MessagesController(List<MessageDto> messages, UserManager<ApplicationUser> userManager)
+        public MessagesController(UserManager<ApplicationUser> userManager, ChatContext chatContext)
         {
-            Messages = messages;
+            this.chatContext = chatContext;
             this.userManager = userManager;
         }
-        public async Task<List<MessageDto>> Get()
+        public async Task<IEnumerable<MessageDto>> Get()
         {
-            var id = userManager.GetUserId(User);
-            return Messages.Where(m => m.ReceiverId == id || m.SenderId == id).ToList();
+            var id = new Guid(userManager.GetUserId(User));
+            return chatContext.Messages
+                .Where(message => message.SenderId == id || message.ReceiverId == id)
+                .Select(message => new MessageDto
+                {
+                    Content = message.Text,
+                    ReceiverId = message.ReceiverId.ToString(),
+                    SenderId = message.SenderId.ToString()
+                });
         }
     }
 }

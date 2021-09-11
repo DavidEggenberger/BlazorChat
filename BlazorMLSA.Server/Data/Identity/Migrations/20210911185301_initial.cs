@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace BlazorMLSA.Server.Data.Migrations
+namespace BlazorMLSA.Server.Data.Identity.Migrations
 {
-    public partial class intial : Migration
+    public partial class initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
