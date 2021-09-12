@@ -15,8 +15,8 @@ namespace BlazorMLSA.Server.Controllers
     [ApiController]
     public class OnlineUsersController : ControllerBase
     {
-        private IdentityDbContext identityDbContext;
-        public OnlineUsersController(IdentityDbContext identityDbContext)
+        private ApplicationDbContext identityDbContext;
+        public OnlineUsersController(ApplicationDbContext identityDbContext)
         {
             this.identityDbContext = identityDbContext;
         }

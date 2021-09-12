@@ -1,5 +1,4 @@
 using BlazorMLSA.Server.Data;
-using BlazorMLSA.Server.Data.Chat;
 using BlazorMLSA.Server.Data.Identity;
 using BlazorMLSA.Server.Hubs;
 using BlazorMLSA.Server.Utilities.IdentityServer;
@@ -55,11 +54,7 @@ namespace BlazorMLSA.Server
             services.AddRazorPages();
             services.AddSignalR();
 
-            services.AddDbContext<IdentityDbContext>(options =>
-            {
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-            });
-            services.AddDbContext<ChatContext>(options =>
+            services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
@@ -113,11 +108,11 @@ namespace BlazorMLSA.Server
                 o.Stores.MaxLengthForKeys = 128;
             })
                 .AddDefaultTokenProviders()
-                .AddEntityFrameworkStores<IdentityDbContext>();
+                .AddEntityFrameworkStores<ApplicationDbContext>();
             identityService.AddSignInManager();
 
             services.AddIdentityServer()
-                .AddApiAuthorization<ApplicationUser, IdentityDbContext>(options =>
+                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
                 {
                     options.Clients.Add(new IdentityServer4.Models.Client
                     {

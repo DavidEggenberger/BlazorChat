@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BlazorMLSA.Server.Data.Identity.Migrations
 {
-    [DbContext(typeof(IdentityDbContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20210911185301_initial")]
     partial class initial
     {

@@ -1,4 +1,5 @@
-﻿using BlazorMLSA.Server.Data.Identity;
+﻿using BlazorMLSA.Server.Data;
+using BlazorMLSA.Server.Data.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

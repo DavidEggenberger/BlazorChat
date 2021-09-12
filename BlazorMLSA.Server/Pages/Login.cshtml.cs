@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using BlazorMLSA.Server.Data;
 using BlazorMLSA.Server.Data.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
