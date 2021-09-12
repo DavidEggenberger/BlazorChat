@@ -75,7 +75,7 @@ namespace BlazorMLSA.Server.Hubs
                 SenderId = message.SenderId
             });
             await applicationDbContext.SaveChangesAsync();
-            await Clients.User(message.ReceiverId).SendAsync("ReceiveMessage");
+            await Clients.Users(message.ReceiverId, message.SenderId).SendAsync("ReceiveMessage");
         }
     }
 }

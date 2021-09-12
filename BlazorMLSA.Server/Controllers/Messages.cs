@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace BlazorMLSA.Server.Controllers
@@ -17,23 +18,21 @@ namespace BlazorMLSA.Server.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        private UserManager<ApplicationUser> userManager;
         private ApplicationDbContext applicationDbContext;
         public MessagesController(UserManager<ApplicationUser> userManager, ApplicationDbContext applicationDbContext)
         {
-            this.userManager = userManager;
             this.applicationDbContext = applicationDbContext;
         }
         public async Task<IEnumerable<MessageDto>> Get()
         {
-            var id = userManager.GetUserId(User);
+            var id = User.Claims.Where(claim => claim.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
             return applicationDbContext.Messages
                 .Where(message => message.SenderId == id || message.ReceiverId == id)
                 .Select(message => new MessageDto
                 {
                     Content = message.Text,
-                    ReceiverId = message.ReceiverId.ToString(),
-                    SenderId = message.SenderId.ToString()
+                    ReceiverId = message.ReceiverId,
+                    SenderId = message.SenderId
                 });
         }
     }

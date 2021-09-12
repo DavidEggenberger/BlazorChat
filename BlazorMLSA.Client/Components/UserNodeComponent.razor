@@ -48,14 +48,14 @@
 
 @code{
     List<MessageDto> messages;
-    [CascadingParameter]
-    public HubConnection HubConnection { get; set; }
+    [CascadingParameter(Name = "hubConnection")]
+    public HubConnection hubConnection { get; set; }
     [Parameter]
     public UserNode Node { get; set; }
     protected override async Task OnInitializedAsync()
     {
         messages = new List<MessageDto>();
-        HubConnection.On("ReceiveMessage", async () =>
+        hubConnection.On("ReceiveMessage", async () =>
         {
             messages = await httpClient.GetFromJsonAsync<List<MessageDto>>("/api/Messages");
             StateHasChanged();
@@ -64,6 +64,6 @@
     public async Task ChatAsync(string user, string messageText)
     {
         MessageDto message = new MessageDto { Content = messageText, SenderId = Node.UserDto.Id, ReceiverId = user };
-        await HubConnection.SendAsync("Chat", message);
+        await hubConnection.SendAsync("Chat", message);
     }
 }

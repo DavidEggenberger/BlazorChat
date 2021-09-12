@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace BlazorMLSA.Server.Utilities.SignalR
 {
-    public class EmailBasedUserIdProvider : IUserIdProvider
+    public class UserIdProvider : IUserIdProvider
     {
         public virtual string GetUserId(HubConnectionContext connection)
         {

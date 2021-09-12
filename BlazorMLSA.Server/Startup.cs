@@ -45,7 +45,7 @@ namespace BlazorMLSA.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IUserIdProvider, EmailBasedUserIdProvider>();
+            services.AddSingleton<IUserIdProvider, UserIdProvider>();
             services.AddHttpClient("github", client =>
             {
                 client.BaseAddress = new Uri("https://api.linkedin.com/v2");
