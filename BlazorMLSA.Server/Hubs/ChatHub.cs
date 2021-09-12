@@ -52,8 +52,9 @@ namespace BlazorMLSA.Server.Hubs
             if(appUser.TabsOpen > 0)
             {
                 appUser.TabsOpen--;
+                await applicationDbContext.SaveChangesAsync();
             }
-            if(appUser.TabsOpen == 0)
+            if (appUser.TabsOpen == 0)
             {
                 appUser.IsOnline = false;
                 await applicationDbContext.SaveChangesAsync();

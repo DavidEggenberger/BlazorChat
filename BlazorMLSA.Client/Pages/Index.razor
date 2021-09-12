@@ -68,6 +68,33 @@
                     options.AccessTokenProvider = async () => token.Value;
                 })
                 .Build();
+                await hubConnection.StartAsync();
+                foreach (var user in await httpClient.GetFromJsonAsync<List<UserDto>>("/api/OnlineUsers"))
+                {
+                    Random rnd = new Random();
+                    double width = diagram.Container.Width / 5;
+                    double height = diagram.Container.Height / 5;
+                    (double w, double y) = user switch
+                    {
+                        UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
+                        UserDto s when s.IDP.Contains("GitHub") => (rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
+                        _ => (3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
+                    };
+                    if (user.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
+                    {
+                        diagram.Nodes.Add(new UserNode(new Point(w, y))
+                        {
+                            UserDto = user
+                        });
+                    }
+                    else
+                    {
+                        diagram.Nodes.Add(new ContactNode(new Point(w, y))
+                        {
+                            UserDto = user
+                        });
+                    }
+                }
                 hubConnection.On<UserDto>("RemoveUser", async userToRemove =>
                 {
                     NodeModel userNode = diagram.Nodes.First(node =>
@@ -108,35 +135,8 @@
                     }
                     StateHasChanged();
                 });
-                await hubConnection.StartAsync();
                 await hubConnection.InvokeAsync("NewOnlineUser");
                 StateHasChanged();
-            }
-            foreach (var user in await httpClient.GetFromJsonAsync<List<UserDto>>("/api/OnlineUsers"))
-            {
-                Random rnd = new Random();
-                double width = diagram.Container.Width / 5;
-                double height = diagram.Container.Height / 5;
-                (double w, double y) = user switch
-                {
-                    UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
-                    UserDto s when s.IDP.Contains("GitHub") => (rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
-                    _ => (3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
-                };
-                if (user.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
-                {
-                    diagram.Nodes.Add(new UserNode(new Point(w, y))
-                    {
-                        UserDto = user
-                    });
-                }
-                else
-                {
-                    diagram.Nodes.Add(new ContactNode(new Point(w, y))
-                    {
-                        UserDto = user
-                    });
-                }
             }
         }
     }
