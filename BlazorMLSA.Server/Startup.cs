@@ -46,7 +46,7 @@ namespace BlazorMLSA.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IUserIdProvider, UserIdProvider>();
-            services.AddHttpClient("github", client =>
+            services.AddHttpClient("LinkedIn", client =>
             {
                 client.BaseAddress = new Uri("https://api.linkedin.com/v2");
             });
@@ -73,7 +73,7 @@ namespace BlazorMLSA.Server
                     options.Scope.Add("r_liteprofile");
                     options.Events.OnCreatingTicket = async context =>
                     {
-                        HttpClient htp = context.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("github");
+                        HttpClient htp = context.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>().CreateClient("LinkedIn");
                         htp.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
                         var respone = await htp.GetStringAsync(htp.BaseAddress + "/me?projection=(id,profilePicture(displayImage~:playableStreams))");
                         Root root = JsonSerializer.Deserialize<Root>(respone);
