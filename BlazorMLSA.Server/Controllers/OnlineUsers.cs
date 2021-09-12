@@ -26,7 +26,7 @@ namespace BlazorMLSA.Server.Controllers
         public IEnumerable<UserDto> Get()
         {
             List<ApplicationUser> applicationUsers = identityDbContext.Users.ToList();
-            return chatContext.Users
+            var t = chatContext.Users
                 .Where(user => user.IsOnline)
                 .ToList()
                 .Select(user => 
@@ -40,6 +40,7 @@ namespace BlazorMLSA.Server.Controllers
                         Name = applicationUser.UserName
                     };
                 });
+            return t;
         }
     }
 }

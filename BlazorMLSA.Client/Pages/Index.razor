@@ -103,6 +103,10 @@
                         }
                         onlineUsers.Add(userDto);
                     }
+                    foreach (var user in onlineUsers.Where(user => allOnlineUsers.Contains(user) is false))
+                    {
+                        onlineUsers.Remove(user);
+                    }
                     StateHasChanged();
                 });
             }

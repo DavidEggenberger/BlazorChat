@@ -39,20 +39,21 @@ namespace BlazorMLSA.Server.Hubs
                 await Clients.All.SendAsync("Update");
                 return;
             }
+
             User user = chatContext.Users.Find(new Guid(appUser.Id));
             if(user.IsOnline is false)
             {
                 user.IsOnline = true;
                 user.TabsOpen = 1;
-                await Clients.All.SendAsync("Update");
                 await chatContext.SaveChangesAsync();
+                await Clients.All.SendAsync("Update");
                 return;
             }
             if (user.IsOnline)
             {
                 user.TabsOpen++;
+                await chatContext.SaveChangesAsync();
             }
-            await chatContext.SaveChangesAsync();
         }
         public override async Task OnDisconnectedAsync(Exception ex)
         {
@@ -69,8 +70,8 @@ namespace BlazorMLSA.Server.Hubs
                     user.IsOnline = false;
                 }
                 await chatContext.SaveChangesAsync();
-                await Clients.All.SendAsync("Update");
             }
+            await Clients.All.SendAsync("Update");
         }
         public async Task Chat(MessageDto message)
         {
@@ -80,6 +81,7 @@ namespace BlazorMLSA.Server.Hubs
                 ReceiverId = new Guid(message.ReceiverId),
                 SenderId = new Guid(message.SenderId)
             });
+            await chatContext.SaveChangesAsync();
             await Clients.User(message.ReceiverId).SendAsync("ReceiveMessage", message);
         }
     }
