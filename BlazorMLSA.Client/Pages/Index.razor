@@ -22,14 +22,10 @@
     [CascadingParameter]
     public Task<AuthenticationState> AuthState { get; set; }
     private HubConnection hubConnection;
-    private List<UserDto> onlineUsers;
-    private List<UserNode> userNodes;
     private Diagram diagram;
 
     protected override async Task OnInitializedAsync()
     {
-        userNodes = new List<UserNode>();
-        onlineUsers = new List<UserDto>();
         var options = new DiagramOptions
         {
             DeleteKey = "Delete",
@@ -66,46 +62,76 @@
 
             if (token is not null)
             {
+                foreach (var user in await httpClient.GetFromJsonAsync<List<UserDto>>("/api/OnlineUsers"))
+                {
+                    Random rnd = new Random();
+                    double width = diagram.Container.Width / 5;
+                    double height = diagram.Container.Height / 5;
+                    (double w, double y) = user switch
+                    {
+                        UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
+                        UserDto s when s.IDP.Contains("GitHub") => (rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
+                        _ => (3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
+                    };
+                    if (user.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
+                    {
+                        diagram.Nodes.Add(new UserNode(new Point(w, y))
+                        {
+                            UserDto = user
+                        });
+                    }
+                    else
+                    {
+                        diagram.Nodes.Add(new ContactNode(new Point(w, y))
+                        {
+                            UserDto = user
+                        });
+                    }
+                }
+
                 hubConnection = new HubConnectionBuilder()
                 .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"), options =>
                 {
                     options.AccessTokenProvider = async () => token.Value;
-                    Console.WriteLine(token.Value);
                 })
                 .Build();
-                hubConnection.On("Update", async () =>
+                hubConnection.On<UserDto>("RemoveUser", async userToRemove =>
                 {
-                    var allOnlineUsers = await httpClient.GetFromJsonAsync<List<UserDto>>("/api/OnlineUsers");
+                    NodeModel userNode = diagram.Nodes.First(node =>
+                    {
+                        if (node is ContactNode && ((ContactNode)node).UserDto.Id == userToRemove.Id)
+                        {
+                            return true;
+                        }
+                        return false;
+                    });
+                    diagram.Nodes.Remove(userNode);
+                    StateHasChanged();
+                });
+                hubConnection.On<UserDto>("NewUser", async newUser =>
+                {
                     Random rnd = new Random();
-                    foreach (var userDto in allOnlineUsers.Where(user => !onlineUsers.Select(s => s.Name).Contains(user.Name)))
+                    double width = diagram.Container.Width / 5;
+                    double height = diagram.Container.Height / 5;
+                    (double w, double y) = newUser switch
                     {
-                        double width = diagram.Container.Width / 5;
-                        double height = diagram.Container.Height / 5;
-                        (double w, double y) = userDto switch
+                        UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
+                        UserDto s when s.IDP.Contains("GitHub") => (rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
+                        _ => (3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
+                    };
+                    if (newUser.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
+                    {
+                        diagram.Nodes.Add(new UserNode(new Point(w, y))
                         {
-                            UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
-                            UserDto s when s.IDP.Contains("GitHub") => (rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
-                            _ => (3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
-                        };
-                        if(userDto.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
-                        {
-                            diagram.Nodes.Add(new UserNode(new Point(w, y))
-                            {
-                                UserDto = userDto
-                            });
-                        }
-                        else
-                        {
-                            diagram.Nodes.Add(new ContactNode(new Point(w, y))
-                            {
-                                UserDto = userDto
-                            });
-                        }
-                        onlineUsers.Add(userDto);
+                            UserDto = newUser
+                        });
                     }
-                    foreach (var user in onlineUsers.Where(user => allOnlineUsers.Contains(user) is false))
+                    else
                     {
-                        onlineUsers.Remove(user);
+                        diagram.Nodes.Add(new ContactNode(new Point(w, y))
+                        {
+                            UserDto = newUser
+                        });
                     }
                     StateHasChanged();
                 });

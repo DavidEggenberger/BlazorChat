@@ -1,5 +1,4 @@
-﻿using BlazorMLSA.Server.Data.Chat;
-using BlazorMLSA.Server.Data.Identity;
+﻿using BlazorMLSA.Server.Data;
 using BlazorMLSA.Shared;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.AspNetCore.Authorization;
@@ -16,22 +15,20 @@ namespace BlazorMLSA.Server.Controllers
     [ApiController]
     public class OnlineUsersController : ControllerBase
     {
-        private ChatContext chatContext;
         private IdentityDbContext identityDbContext;
-        public OnlineUsersController(ChatContext chatContext, IdentityDbContext identityDbContext)
+        public OnlineUsersController(IdentityDbContext identityDbContext)
         {
-            this.chatContext = chatContext;
             this.identityDbContext = identityDbContext;
         }
         public IEnumerable<UserDto> Get()
         {
             List<ApplicationUser> applicationUsers = identityDbContext.Users.ToList();
-            var t = chatContext.Users
+            var t = identityDbContext.Users
                 .Where(user => user.IsOnline)
                 .ToList()
                 .Select(user => 
                 {
-                    ApplicationUser applicationUser = applicationUsers.Find(appUser => new Guid(appUser.Id) == user.Id);
+                    ApplicationUser applicationUser = applicationUsers.Find(appUser => appUser.Id == user.Id);
                     return new UserDto
                     {
                         Id = user.Id.ToString(),

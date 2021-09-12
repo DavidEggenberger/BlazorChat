@@ -8,18 +8,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorMLSA.Server.Data.Identity
+namespace BlazorMLSA.Server.Data
 {
-    public class IdentityDbContext : ApiAuthorizationDbContext<ApplicationUser>
+    public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     {
-        public IdentityDbContext(
+        public DbSet<Message> Messages { get; set; }
+        public ApplicationDbContext(
             DbContextOptions options,
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
         {
         }
-    }
-    public class ApplicationUser : IdentityUser
-    {
-        public string PictureUri { get; set; }
     }
 }

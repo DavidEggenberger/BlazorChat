@@ -1,5 +1,4 @@
 ﻿using BlazorMLSA.Server.Data;
-using BlazorMLSA.Server.Data.Chat;
 using BlazorMLSA.Server.Data.Identity;
 using BlazorMLSA.Shared;
 using Microsoft.AspNetCore.Authentication;
@@ -18,17 +17,17 @@ namespace BlazorMLSA.Server.Controllers
     [ApiController]
     public class MessagesController : ControllerBase
     {
-        private ChatContext chatContext;
         private UserManager<ApplicationUser> userManager;
-        public MessagesController(UserManager<ApplicationUser> userManager, ChatContext chatContext)
+        private ApplicationDbContext applicationDbContext;
+        public MessagesController(UserManager<ApplicationUser> userManager, ApplicationDbContext applicationDbContext)
         {
-            this.chatContext = chatContext;
             this.userManager = userManager;
+            this.applicationDbContext = applicationDbContext;
         }
         public async Task<IEnumerable<MessageDto>> Get()
         {
-            var id = new Guid(userManager.GetUserId(User));
-            return chatContext.Messages
+            var id = userManager.GetUserId(User);
+            return applicationDbContext.Messages
                 .Where(message => message.SenderId == id || message.ReceiverId == id)
                 .Select(message => new MessageDto
                 {

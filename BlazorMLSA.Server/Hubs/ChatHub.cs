@@ -1,5 +1,4 @@
 ﻿using BlazorMLSA.Server.Data;
-using BlazorMLSA.Server.Data.Chat;
 using BlazorMLSA.Server.Data.Identity;
 using BlazorMLSA.Shared;
 using Microsoft.AspNetCore.Authorization;
@@ -17,72 +16,66 @@ namespace BlazorMLSA.Server.Hubs
     [Authorize]
     public class ChatHub : Hub
     {
-        private ChatContext chatContext;
         private UserManager<ApplicationUser> userManager;
-        public ChatHub(UserManager<ApplicationUser> userManager, ChatContext chatContext)
+        private ApplicationDbContext applicationDbContext;
+        public ChatHub(UserManager<ApplicationUser> userManager, ApplicationDbContext applicationDbContext)
         {
             this.userManager = userManager;
-            this.chatContext = chatContext;
+            this.applicationDbContext = applicationDbContext;
         }
         public async Task NewOnlineUser()
         {
             ApplicationUser appUser = await userManager.GetUserAsync(Context.User);
-            if(chatContext.Users.Any(user => user.Id == new Guid(appUser.Id)) is false)
+            if(appUser.IsOnline is false)
             {
-                chatContext.Users.Add(new User
+                appUser.IsOnline = true;
+                appUser.TabsOpen = 1;
+                await applicationDbContext.SaveChangesAsync();
+                await Clients.All.SendAsync("NewUser", new UserDto
                 {
-                    Id = new Guid(appUser.Id),
-                    IsOnline = true,
-                    TabsOpen = 1
+                    Id = appUser.Id,
+                    IDP = applicationDbContext.UserLogins.Where(userLogin => userLogin.UserId == appUser.Id.ToString()).First().LoginProvider,
+                    Image = appUser.PictureUri,
+                    Name = appUser.UserName
                 });
-                await chatContext.SaveChangesAsync();
-                await Clients.All.SendAsync("Update");
                 return;
             }
-
-            User user = chatContext.Users.Find(new Guid(appUser.Id));
-            if(user.IsOnline is false)
+            if (appUser.IsOnline)
             {
-                user.IsOnline = true;
-                user.TabsOpen = 1;
-                await chatContext.SaveChangesAsync();
-                await Clients.All.SendAsync("Update");
-                return;
-            }
-            if (user.IsOnline)
-            {
-                user.TabsOpen++;
-                await chatContext.SaveChangesAsync();
+                appUser.TabsOpen++;
+                await applicationDbContext.SaveChangesAsync();
             }
         }
         public override async Task OnDisconnectedAsync(Exception ex)
         {
             ApplicationUser appUser = await userManager.GetUserAsync(Context.User);
-            User user;
-            if ((user = chatContext.Users.Find(new Guid(appUser.Id))) != null)
+            if(appUser.TabsOpen > 0)
             {
-                if(user.TabsOpen > 0)
-                {
-                    user.TabsOpen--;
-                }
-                if(user.TabsOpen == 0)
-                {
-                    user.IsOnline = false;
-                }
-                await chatContext.SaveChangesAsync();
+                appUser.TabsOpen--;
             }
-            await Clients.All.SendAsync("Update");
+            if(appUser.TabsOpen == 0)
+            {
+                appUser.IsOnline = false;
+                await applicationDbContext.SaveChangesAsync();
+                await Clients.All.SendAsync("RemoveUser", new UserDto
+                {
+                    Id = appUser.Id,
+                    IDP = applicationDbContext.UserLogins.Where(userLogin => userLogin.UserId == appUser.Id.ToString()).First().LoginProvider,
+                    Image = appUser.PictureUri,
+                    Name = appUser.UserName
+                });
+            }
         }
         public async Task Chat(MessageDto message)
         {
-            chatContext.Messages.Add(new Message
+            applicationDbContext.Messages.Add(new Message
             {
                 Text = message.Content,
-                ReceiverId = new Guid(message.ReceiverId),
-                SenderId = new Guid(message.SenderId)
+                ReceiverId = message.ReceiverId,
+                SenderId = message.SenderId
             });
-            await chatContext.SaveChangesAsync();
-            await Clients.User(message.ReceiverId).SendAsync("ReceiveMessage", message);
+            await applicationDbContext.SaveChangesAsync();
+            await Clients.User(message.ReceiverId).SendAsync("ReceiveMessage");
         }
     }
 }
