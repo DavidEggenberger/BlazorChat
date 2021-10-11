@@ -69,6 +69,7 @@
                 })
                 .Build();
                 await hubConnection.StartAsync();
+                StateHasChanged();
                 foreach (var user in await httpClient.GetFromJsonAsync<List<UserDto>>("/api/OnlineUsers"))
                 {
                     Random rnd = new Random();
@@ -135,7 +136,6 @@
                     }
                     StateHasChanged();
                 });
-                StateHasChanged();
             }
         }
     }
