@@ -23,7 +23,7 @@ namespace BlazorMLSA.Server.Hubs
             this.userManager = userManager;
             this.applicationDbContext = applicationDbContext;
         }
-        public async Task NewOnlineUser()
+        public override async Task OnConnectedAsync()
         {
             ApplicationUser appUser = await userManager.GetUserAsync(Context.User);
             if(appUser.IsOnline is false)
