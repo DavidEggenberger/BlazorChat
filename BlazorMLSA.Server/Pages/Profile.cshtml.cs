@@ -55,9 +55,10 @@ namespace BlazorMLSA.Server.Pages
         }
         public async Task<ActionResult> OnPostAsync()
         {
+            string formattedAuthenticatorCode = AuthenticatorCode.Replace(" ", string.Empty);
             ApplicationUser = await userManager.GetUserAsync(User);
             var is2faTokenValid = await userManager.VerifyTwoFactorTokenAsync(
-                ApplicationUser, userManager.Options.Tokens.AuthenticatorTokenProvider, AuthenticatorCode);
+                ApplicationUser, userManager.Options.Tokens.AuthenticatorTokenProvider, formattedAuthenticatorCode);
 
             if (is2faTokenValid)
             {

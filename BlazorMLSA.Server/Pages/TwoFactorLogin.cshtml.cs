@@ -25,7 +25,8 @@ namespace BlazorMLSA.Server.Pages
         public void OnGet() { }
         public async Task<ActionResult> OnPostAsync()
         {
-            var signInResult = await signInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, true, false);
+            string formattedAuthenticatorCode = authenticatorCode.Replace(" ", string.Empty);
+            var signInResult = await signInManager.TwoFactorAuthenticatorSignInAsync(formattedAuthenticatorCode, true, false);
             if (signInResult.Succeeded)
             {
                 return LocalRedirect(ReturnUrl);
