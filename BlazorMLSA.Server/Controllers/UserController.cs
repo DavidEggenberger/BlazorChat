@@ -15,15 +15,15 @@ namespace BlazorMLSA.Server.Controllers
     [ApiController]
     public class OnlineUsersController : ControllerBase
     {
-        private ApplicationDbContext identityDbContext;
+        private ApplicationDbContext applicationDbContext;
         public OnlineUsersController(ApplicationDbContext identityDbContext)
         {
-            this.identityDbContext = identityDbContext;
+            this.applicationDbContext = identityDbContext;
         }
         public IEnumerable<UserDto> Get()
         {
-            List<ApplicationUser> applicationUsers = identityDbContext.Users.ToList();
-            var t = identityDbContext.Users
+            List<ApplicationUser> applicationUsers = applicationDbContext.Users.ToList();
+            var t = applicationDbContext.Users
                 .Where(user => user.IsOnline)
                 .ToList()
                 .Select(user => 
@@ -32,7 +32,7 @@ namespace BlazorMLSA.Server.Controllers
                     return new UserDto
                     {
                         Id = user.Id.ToString(),
-                        IDP = identityDbContext.UserLogins.Where(userLogin => userLogin.UserId == user.Id.ToString()).First().LoginProvider,
+                        IDP = applicationDbContext.UserLogins.Where(userLogin => userLogin.UserId == user.Id.ToString()).First().LoginProvider,
                         Image = applicationUser.PictureUri,
                         Name = applicationUser.UserName
                     };
