@@ -1,19 +1,17 @@
 ﻿<div class="card contact">
     <div class="card-body">
-        <h2>@Node.UserDto.Name  @message</h2>
+        <h2>@Node.UserDto.Name</h2>
         <img width="150" src="@Node.UserDto.Image" />
     </div>
     <div style="width: 100%; display: grid; place-items: center;">
         @foreach (var port in Node.Ports)
         {
-            <!-- Default ports -->
             <PortRenderer Port="port" />
         }
     </div>
 </div>
 
 @code{
-    string message;
     [Parameter]
     public ContactNode Node { get; set; }
 }

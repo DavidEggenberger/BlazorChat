@@ -23,9 +23,11 @@
     public Task<AuthenticationState> AuthState { get; set; }
     private HubConnection hubConnection;
     private Diagram diagram;
+    private Random rnd;
 
     protected override async Task OnInitializedAsync()
     {
+        rnd = new Random();
         var options = new DiagramOptions
         {
             DeleteKey = "Delete",
@@ -72,31 +74,22 @@
                 StateHasChanged();
                 foreach (var user in await httpClient.GetFromJsonAsync<List<UserDto>>("/api/OnlineUsers"))
                 {
-                    Random rnd = new Random();
-                    double width = diagram.Container.Width / 5;
-                    double height = diagram.Container.Height / 5;
-                    (double w, double y) = user switch
-                    {
-                        UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
-                        UserDto s when s.IDP.Contains("GitHub") => (rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
-                        _ => (3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
-                    };
                     if (user.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
                     {
-                        diagram.Nodes.Add(new UserNode(new Point(w, y))
+                        diagram.Nodes.Add(new UserNode(GenerateCoordinatePoint(user))
                         {
                             UserDto = user
                         });
                     }
                     else
                     {
-                        diagram.Nodes.Add(new ContactNode(new Point(w, y))
+                        diagram.Nodes.Add(new ContactNode(GenerateCoordinatePoint(user))
                         {
                             UserDto = user
                         });
                     }
                 }
-                hubConnection.On<UserDto>("RemoveUser", async userToRemove =>
+                hubConnection.On<UserDto>("RemoveUser", userToRemove =>
                 {
                     NodeModel userNode = diagram.Nodes.First(node =>
                     {
@@ -109,27 +102,18 @@
                     diagram.Nodes.Remove(userNode);
                     StateHasChanged();
                 });
-                hubConnection.On<UserDto>("NewUser", async newUser =>
+                hubConnection.On<UserDto>("NewUser", newUser =>
                 {
-                    Random rnd = new Random();
-                    double width = diagram.Container.Width / 5;
-                    double height = diagram.Container.Height / 5;
-                    (double w, double y) = newUser switch
-                    {
-                        UserDto s when s.IDP.Contains("LinkedIn") => (rnd.Next(3 * (int)width, (int)diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
-                        UserDto s when s.IDP.Contains("GitHub") => (rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
-                        _ => (3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
-                    };
                     if (newUser.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
                     {
-                        diagram.Nodes.Add(new UserNode(new Point(w, y))
+                        diagram.Nodes.Add(new UserNode(GenerateCoordinatePoint(newUser))
                         {
                             UserDto = newUser
                         });
                     }
                     else
                     {
-                        diagram.Nodes.Add(new ContactNode(new Point(w, y))
+                        diagram.Nodes.Add(new ContactNode(GenerateCoordinatePoint(newUser))
                         {
                             UserDto = newUser
                         });
@@ -138,5 +122,16 @@
                 });
             }
         }
+    }
+    private Point GenerateCoordinatePoint(UserDto userDto)
+    {
+        double width = diagram.Container.Width / 5;
+        double height = diagram.Container.Height / 5;
+        return userDto switch
+        {
+            UserDto s when s.IDP.Contains("LinkedIn") => new Point(rnd.Next(3 * (int)width, (int)diagram.Container.Width - 250), rnd.Next((int)height, (int)(3 * height - 100))),
+            UserDto s when s.IDP.Contains("GitHub") => new Point(rnd.Next(0, 2 * (int)width), rnd.Next((int)height, (int)(3 * height - 100))),
+            _ => new Point(3 * (int)width, rnd.Next((int)height, (int)(3 * height)))
+        };
     }
 }

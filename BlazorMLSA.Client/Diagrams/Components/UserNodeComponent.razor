@@ -39,7 +39,6 @@
     <div style="width: 100%; display: grid; place-items: center;">
         @foreach (var port in Node.Ports)
         {
-            <!-- Default ports -->
             <PortRenderer Port="port" />
         }
     </div>
@@ -47,11 +46,12 @@
 
 
 @code{
-    List<MessageDto> messages;
     [CascadingParameter(Name = "hubConnection")]
     public HubConnection hubConnection { get; set; }
     [Parameter]
     public UserNode Node { get; set; }
+    private List<MessageDto> messages;
+
     protected override async Task OnInitializedAsync()
     {
         messages = new List<MessageDto>();
@@ -61,9 +61,9 @@
             StateHasChanged();
         });
     }
-    public async Task ChatAsync(string user, string messageText)
+    public async Task ChatAsync(string receiverId, string messageText)
     {
-        MessageDto message = new MessageDto { Content = messageText, SenderId = Node.UserDto.Id, ReceiverId = user };
+        MessageDto message = new MessageDto { Content = messageText, SenderId = Node.UserDto.Id, ReceiverId = receiverId };
         await hubConnection.SendAsync("Chat", message);
     }
 }
