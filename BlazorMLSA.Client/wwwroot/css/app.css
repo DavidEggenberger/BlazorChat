@@ -4,56 +4,6 @@
     margin: 0;
     color: white;
 }
-.page {
-    height: 100vh;
-    background: linear-gradient(108deg, rgba(13,17,23,1) 0%, rgba(10,102,194,1) 100%);
-}
-.page h1{
-    margin: 0;
-    font-size: 40px;
-}
-nav{
-    height: 80px;
-    display: flex;
-    padding: 15px;
-    justify-content: space-between;
-    box-sizing: border-box;
-}
-nav h1{
-    margin: 0;
-}
-    nav .LoginDisplay {
-        position: relative;
-        top: 10px;
-        right: 5px;
-        display: flex;
-        width: 360px;
-        justify-content: flex-end;
-    }
-    nav .LoginDisplay button{
-        margin-left: 15px;
-    }
-button, a{
-    display: block;
-    background-color: unset;
-    height: 32px;
-    font-size: 20px;
-    display: grid;
-    place-items: center;
-}
-button {
-    color: white;
-    border-radius: 5px;
-    border: 3px solid white;
-}
-a:focus, a:active, a{
-    color: white !important;
-}
-.main{
-    padding: 15px;
-    height: calc(100vh - 80px);
-    box-sizing: border-box;
-}
 .card-body {
     height: 340px;
     width: 230px;

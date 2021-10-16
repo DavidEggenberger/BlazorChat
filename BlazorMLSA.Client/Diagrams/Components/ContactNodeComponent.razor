@@ -1,9 +1,9 @@
 ﻿<div class="card contact">
     <div class="card-body">
         <h2>@Node.UserDto.Name</h2>
-        <img width="150" src="@Node.UserDto.Image" />
+        <img src="@Node.UserDto.Image" />
     </div>
-    <div style="width: 100%; display: grid; place-items: center;">
+    <div class="portContainer">
         @foreach (var port in Node.Ports)
         {
             <PortRenderer Port="port" />
