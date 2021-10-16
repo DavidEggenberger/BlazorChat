@@ -1,9 +1,9 @@
 ﻿@inject HttpClient httpClient
 
 <div class="card">
-    <div class="card-body" style="height: 390px;">
+    <div class="card-body">
         <h2>YOU</h2>
-        <img width="150" src="@Node.UserDto.Image" />
+        <img src="@Node.UserDto.Image" />
         @if (Node.SelectedUser is not null)
         {
             <h4>Selected: @Node.SelectedUser.Name</h4>
@@ -12,11 +12,8 @@
         {
             <h4>Select a User</h4>
         }
-        <div style="display: flex; justify-content: space-between; padding: 0 5px;">
-            @code{
-                string message;
-            }
-            <input style="width: 60%; outline: none; border: none; border-radius: 3px; font-size: 18px;" @bind="message" @bind:event="oninput" />
+        <div class="chatContainer">
+            <input @bind="message" @bind:event="oninput" />
             <button @onclick='async () => await ChatAsync(Node.SelectedUser.Id, message)'>Chat</button>
         </div>
         @if (messages.Count > 0 && Node.SelectedUser is not null)
@@ -36,7 +33,7 @@
             </div>
         }
     </div>
-    <div style="width: 100%; display: grid; place-items: center;">
+    <div class="portContainer">
         @foreach (var port in Node.Ports)
         {
             <PortRenderer Port="port" />
@@ -46,11 +43,12 @@
 
 
 @code{
-    [CascadingParameter(Name = "hubConnection")]
+    [CascadingParameter]
     public HubConnection hubConnection { get; set; }
     [Parameter]
     public UserNode Node { get; set; }
     private List<MessageDto> messages;
+    private string message;
 
     protected override async Task OnInitializedAsync()
     {

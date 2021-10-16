@@ -1,0 +1,23 @@
+﻿.card-body{
+    height: 380px;
+}
+.portContainer {
+    width: 100%; 
+    display: grid; 
+    place-items: center;
+}
+.chatContainer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 5px;
+}
+input {
+    width: 60%;
+    outline: none;
+    border: none;
+    border-radius: 3px;
+    font-size: 18px;
+}
+img {
+    width: 150px;
+}
