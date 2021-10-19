@@ -1,7 +1,6 @@
 using BlazorMLSA.Server.Data;
 using BlazorMLSA.Server.Data.Identity;
 using BlazorMLSA.Server.Hubs;
-using BlazorMLSA.Server.Utilities.IdentityServer;
 using BlazorMLSA.Server.Utilities.LinkedInPicture;
 using BlazorMLSA.Server.Utilities.SignalR;
 using BlazorMLSA.Shared;
@@ -139,8 +138,7 @@ namespace BlazorMLSA.Server
                         }
                     };
                     var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("David Eggenberger Security key very long very secure")), SecurityAlgorithms.HmacSha256);
-                })
-                .AddProfileService<ProfileService>();
+                });
 
             services.Configure<JwtBearerOptions>(IdentityServerJwtConstants.IdentityServerJwtBearerScheme, options =>
             {
