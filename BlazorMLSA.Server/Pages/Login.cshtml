@@ -1,6 +1,5 @@
 ﻿@page
 @model BlazorMLSA.Server.Pages.LoginModel
-@inject SignInManager<ApplicationUser> SignInManager
 @attribute [AllowAnonymous]
 @{
     ViewData["Title"] = "Login";
@@ -8,7 +7,7 @@
 
 <h3>Choose a social log-in:</h3>
 @{
-    var providers = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+    var providers = (await Model.SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
     <form asp-route-returnurl="@Model.ReturnUrl" method="post" class="form-horizontal">
         <div>
                 @foreach (var provider in providers)

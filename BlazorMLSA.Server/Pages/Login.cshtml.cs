@@ -11,8 +11,8 @@ namespace BlazorMLSA.Server.Pages
     [AllowAnonymous]
     public class LoginModel : PageModel
     {
-        private SignInManager<ApplicationUser> SignInManager;
-        
+        public readonly SignInManager<ApplicationUser> SignInManager;
+
         [BindProperty(SupportsGet = true)]
         public string ReturnUrl { get; set; }
         public LoginModel(SignInManager<ApplicationUser> signInManager)

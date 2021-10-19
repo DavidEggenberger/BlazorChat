@@ -20,14 +20,11 @@ namespace BlazorMLSA.Server.Pages
         [BindProperty(SupportsGet = true)]
         public string ReturnUrl { get; set; }
         [BindProperty]
-        public string recoveryCode { get; set; }
-        public void OnGet()
-        {
-        }
+        public string RecoveryCode { get; set; }
 
         public async Task<ActionResult> OnPost()
         {
-            var signInResult = await signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
+            var signInResult = await signInManager.TwoFactorRecoveryCodeSignInAsync(RecoveryCode);
             if (signInResult.Succeeded)
             {
                 return LocalRedirect(ReturnUrl);

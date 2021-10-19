@@ -16,14 +16,14 @@ namespace BlazorMLSA.Server.Controllers
     public class OnlineUsersController : ControllerBase
     {
         private ApplicationDbContext applicationDbContext;
-        public OnlineUsersController(ApplicationDbContext identityDbContext)
+        public OnlineUsersController(ApplicationDbContext applicationDbContext)
         {
-            this.applicationDbContext = identityDbContext;
+            this.applicationDbContext = applicationDbContext;
         }
         public IEnumerable<UserDto> Get()
         {
             List<ApplicationUser> applicationUsers = applicationDbContext.Users.ToList();
-            var t = applicationDbContext.Users
+            return applicationDbContext.Users
                 .Where(user => user.IsOnline)
                 .ToList()
                 .Select(user => 
@@ -37,7 +37,6 @@ namespace BlazorMLSA.Server.Controllers
                         Name = applicationUser.UserName
                     };
                 });
-            return t;
         }
     }
 }
