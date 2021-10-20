@@ -36,9 +36,11 @@ namespace BlazorMLSA.Server
     public class Startup
     {
         private readonly IConfiguration Configuration;
-        public Startup(IConfiguration config)
+        private readonly IWebHostEnvironment webHostEnvironment;
+        public Startup(IConfiguration config, IWebHostEnvironment webHostEnvironment)
         {
             Configuration = config;
+            this.webHostEnvironment = webHostEnvironment;
         }
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -110,7 +112,9 @@ namespace BlazorMLSA.Server
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             identityService.AddSignInManager();
 
-            services.AddIdentityServer()
+            if (webHostEnvironment.IsDevelopment())
+            {
+                services.AddIdentityServer()
                 .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
                 {
                     options.Clients.Add(new IdentityServer4.Models.Client
@@ -139,6 +143,39 @@ namespace BlazorMLSA.Server
                     };
                     var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("David Eggenberger Security key very long very secure")), SecurityAlgorithms.HmacSha256);
                 });
+            }
+            if (webHostEnvironment.IsProduction() || webHostEnvironment.IsStaging())
+            {
+                services.AddIdentityServer()
+                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
+                {
+                    options.Clients.Add(new IdentityServer4.Models.Client
+                    {
+                        ClientId = "BlazorClient",
+                        AllowedGrantTypes = GrantTypes.Code,
+                        RequirePkce = true,
+                        RequireClientSecret = false,
+                        AllowedScopes = new List<string>
+                        {
+                            "openid",
+                            "profile",
+                            "API"
+                        },
+                        RedirectUris = { "https://localhost:44372/authentication/login-callback" },
+                        PostLogoutRedirectUris = { "https://localhost:44372" },
+                        FrontChannelLogoutUri = "https://localhost:44372"
+                    });
+                    options.ApiResources = new ApiResourceCollection
+                    {
+                        new ApiResource
+                        {
+                            Name = "API",
+                            Scopes = new List<string> {"API"}
+                        }
+                    };
+                    var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("David Eggenberger Security key very long very secure")), SecurityAlgorithms.HmacSha256);
+                });
+            }   
 
             services.Configure<JwtBearerOptions>(IdentityServerJwtConstants.IdentityServerJwtBearerScheme, options =>
             {

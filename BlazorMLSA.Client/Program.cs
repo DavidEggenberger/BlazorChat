@@ -28,17 +28,34 @@ namespace BlazorMLSA.Client
             // Supply HttpClient instances that include access tokens when making requests to the server project
             builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerAPI"));
 
-            builder.Services.AddOidcAuthentication(options =>
+            if (builder.HostEnvironment.IsDevelopment())
             {
-                options.ProviderOptions.Authority = "https://localhost:44372";
-                options.ProviderOptions.ClientId = "BlazorClient";
-                options.ProviderOptions.ResponseType = "code";
-                options.ProviderOptions.DefaultScopes.Add("API");
-                options.AuthenticationPaths.LogOutCallbackPath = "/";
-                options.AuthenticationPaths.LogOutPath = "https://localhost:44372/logout";
-                options.AuthenticationPaths.RemoteProfilePath = "https://localhost:44372/profile";
-                options.AuthenticationPaths.RemoteRegisterPath = "https://localhost:44372/login";
-            });
+                builder.Services.AddOidcAuthentication(options =>
+                {
+                    options.ProviderOptions.Authority = "https://localhost:44372";
+                    options.ProviderOptions.ClientId = "BlazorClient";
+                    options.ProviderOptions.ResponseType = "code";
+                    options.ProviderOptions.DefaultScopes.Add("API");
+                    options.AuthenticationPaths.LogOutCallbackPath = "/";
+                    options.AuthenticationPaths.LogOutPath = "https://localhost:44372/logout";
+                    options.AuthenticationPaths.RemoteProfilePath = "https://localhost:44372/profile";
+                    options.AuthenticationPaths.RemoteRegisterPath = "https://localhost:44372/login";
+                });
+            }
+            if(builder.HostEnvironment.IsProduction() || builder.HostEnvironment.IsStaging())
+            {
+                builder.Services.AddOidcAuthentication(options =>
+                {
+                    options.ProviderOptions.Authority = "https://localhost:44372";
+                    options.ProviderOptions.ClientId = "BlazorClient";
+                    options.ProviderOptions.ResponseType = "code";
+                    options.ProviderOptions.DefaultScopes.Add("API");
+                    options.AuthenticationPaths.LogOutCallbackPath = "/";
+                    options.AuthenticationPaths.LogOutPath = "https://localhost:44372/logout";
+                    options.AuthenticationPaths.RemoteProfilePath = "https://localhost:44372/profile";
+                    options.AuthenticationPaths.RemoteRegisterPath = "https://localhost:44372/login";
+                });
+            }
 
             await builder.Build().RunAsync();
         }
