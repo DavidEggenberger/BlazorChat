@@ -55,8 +55,8 @@
         diagram.RegisterModelComponent<UserNode, UserNodeComponent>();
         diagram.RegisterModelComponent<ContactNode, ContactNodeComponent>();
 
-        ClaimsPrincipal cp;
-        if ((cp = (await AuthState).User).Identity.IsAuthenticated)
+        ClaimsPrincipal claimsPrincipal;
+        if ((claimsPrincipal = (await AuthState).User).Identity.IsAuthenticated)
         {
             AccessToken token = new AccessToken();
 
@@ -74,20 +74,7 @@
                 StateHasChanged();
                 foreach (var user in await httpClient.GetFromJsonAsync<List<UserDto>>("/api/OnlineUsers"))
                 {
-                    if (user.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
-                    {
-                        diagram.Nodes.Add(new UserNode(GenerateCoordinatePoint(user))
-                        {
-                            UserDto = user
-                        });
-                    }
-                    else
-                    {
-                        diagram.Nodes.Add(new ContactNode(GenerateCoordinatePoint(user))
-                        {
-                            UserDto = user
-                        });
-                    }
+                    AddNode(user, claimsPrincipal);
                 }
                 hubConnection.On<UserDto>("RemoveUser", userToRemove =>
                 {
@@ -104,24 +91,28 @@
                 });
                 hubConnection.On<UserDto>("NewUser", newUser =>
                 {
-                    if (newUser.Id == cp.Claims.Where(s => s.Type == "sub").First().Value)
-                    {
-                        diagram.Nodes.Add(new UserNode(GenerateCoordinatePoint(newUser))
-                        {
-                            UserDto = newUser
-                        });
-                    }
-                    else
-                    {
-                        diagram.Nodes.Add(new ContactNode(GenerateCoordinatePoint(newUser))
-                        {
-                            UserDto = newUser
-                        });
-                    }
-                    StateHasChanged();
+                    AddNode(newUser, claimsPrincipal);
                 });
             }
         }
+    }
+    private void AddNode(UserDto userDto, ClaimsPrincipal claimsPrincipal)
+    {
+        if (userDto.Id == claimsPrincipal.Claims.Where(s => s.Type == "sub").First().Value)
+        {
+            diagram.Nodes.Add(new UserNode(GenerateCoordinatePoint(userDto))
+            {
+                UserDto = userDto
+            });
+        }
+        else
+        {
+            diagram.Nodes.Add(new ContactNode(GenerateCoordinatePoint(userDto))
+            {
+                UserDto = userDto
+            });
+        }
+        StateHasChanged();
     }
     private Point GenerateCoordinatePoint(UserDto userDto)
     {
