@@ -126,9 +126,9 @@ namespace BlazorChat.Server
                             "profile",
                             "API"
                         },
-                        RedirectUris = { "https://localhost:44326/authentication/login-callback" },
-                        PostLogoutRedirectUris = { "https://localhost:44326" },
-                        FrontChannelLogoutUri = "https://localhost:44326"
+                        RedirectUris = { "https://localhost:44372/authentication/login-callback" },
+                        PostLogoutRedirectUris = { "https://localhost:44372" },
+                        FrontChannelLogoutUri = "https://localhost:44372"
                     });
                     options.ApiResources = new ApiResourceCollection
                     {
@@ -158,9 +158,9 @@ namespace BlazorChat.Server
                             "profile",
                             "API"
                         },
-                        RedirectUris = { "https://localhost:44326/authentication/login-callback" },
-                        PostLogoutRedirectUris = { "https://localhost:44326" },
-                        FrontChannelLogoutUri = "https://localhost:44326"
+                        RedirectUris = { "https://localhost:44372/authentication/login-callback" },
+                        PostLogoutRedirectUris = { "https://localhost:44372" },
+                        FrontChannelLogoutUri = "https://localhost:44372"
                     });
                     options.ApiResources = new ApiResourceCollection
                     {
