@@ -1,12 +1,12 @@
-﻿using BlazorMLSA.Server.Data;
-using BlazorMLSA.Shared;
+﻿using BlazorChat.Server.Data;
+using BlazorChat.Shared;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorMLSA.Server.Hubs
+namespace BlazorChat.Server.Hubs
 {
     public class ChatHub : Hub
     {

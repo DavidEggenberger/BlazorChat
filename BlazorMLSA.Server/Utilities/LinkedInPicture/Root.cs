@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace BlazorMLSA.Server.Utilities.LinkedInPicture
+namespace BlazorChat.Server.Utilities.LinkedInPicture
 {
     public class Paging
     {

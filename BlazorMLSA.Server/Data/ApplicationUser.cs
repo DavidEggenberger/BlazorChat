@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
 
-namespace BlazorMLSA.Server.Data
+namespace BlazorChat.Server.Data
 {
     public class ApplicationUser : IdentityUser
     {

@@ -16,7 +16,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "BlazorMLSA": {
+    "BlazorChat": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,

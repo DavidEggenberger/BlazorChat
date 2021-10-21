@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace BlazorMLSA.Server.Utilities.SignalR
+namespace BlazorChat.Server.Utilities.SignalR
 {
     public class UserIdProvider : IUserIdProvider
     {

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorMLSA.Server.Data.Configuration
+namespace BlazorChat.Server.Data.Configuration
 {
     public class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
     {

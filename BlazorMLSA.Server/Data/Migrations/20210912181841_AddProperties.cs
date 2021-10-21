@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace BlazorMLSA.Server.Data.Identity.Migrations
+namespace BlazorChat.Server.Data.Identity.Migrations
 {
     public partial class AddProperties : Migration
     {

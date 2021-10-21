@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlazorMLSA.Server.Data
+namespace BlazorChat.Server.Data
 {
     public class Message
     {

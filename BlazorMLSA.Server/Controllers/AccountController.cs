@@ -1,11 +1,11 @@
-﻿using BlazorMLSA.Server.Data;
+﻿using BlazorChat.Server.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorMLSA.Server.Controllers
+namespace BlazorChat.Server.Controllers
 {
     [Route("/[controller]")]
     [ApiController]

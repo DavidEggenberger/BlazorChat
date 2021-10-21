@@ -1,4 +1,4 @@
-﻿namespace BlazorMLSA.Shared
+﻿namespace BlazorChat.Shared
 {
     public class UserDto
     {

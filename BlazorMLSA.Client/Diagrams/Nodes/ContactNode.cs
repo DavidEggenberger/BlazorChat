@@ -1,8 +1,8 @@
 ﻿using Blazor.Diagrams.Core.Models;
-using BlazorMLSA.Client.Diagrams.Ports;
-using BlazorMLSA.Shared;
+using BlazorChat.Client.Diagrams.Ports;
+using BlazorChat.Shared;
 
-namespace BlazorMLSA.Client.Diagrams.Nodes
+namespace BlazorChat.Client.Diagrams.Nodes
 {
     public class ContactNode : NodeModel
     {

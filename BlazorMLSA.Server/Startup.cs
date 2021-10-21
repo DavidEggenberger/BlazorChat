@@ -1,7 +1,7 @@
-using BlazorMLSA.Server.Data;
-using BlazorMLSA.Server.Hubs;
-using BlazorMLSA.Server.Utilities.LinkedInPicture;
-using BlazorMLSA.Server.Utilities.SignalR;
+using BlazorChat.Server.Data;
+using BlazorChat.Server.Hubs;
+using BlazorChat.Server.Utilities.LinkedInPicture;
+using BlazorChat.Server.Utilities.SignalR;
 using IdentityServer4.Models;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
@@ -28,7 +28,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace BlazorMLSA.Server
+namespace BlazorChat.Server
 {
     public class Startup
     {

@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BlazorMLSA.Shared\BlazorMLSA.Shared.csproj" />
-    <ProjectReference Include="..\BlazorMLSA.Client\BlazorMLSA.Client.csproj" />
+    <ProjectReference Include="..\BlazorMLSA.Shared\BlazorChat.Shared.csproj" />
+    <ProjectReference Include="..\BlazorMLSA.Client\BlazorChat.Client.csproj" />
   </ItemGroup>
 
 </Project>

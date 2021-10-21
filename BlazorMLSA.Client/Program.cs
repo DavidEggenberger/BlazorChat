@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 
-namespace BlazorMLSA.Client
+namespace BlazorChat.Client
 {
     public class Program
     {

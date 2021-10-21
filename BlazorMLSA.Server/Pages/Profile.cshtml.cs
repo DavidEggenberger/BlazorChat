@@ -5,13 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using BlazorMLSA.Server.Data;
+using BlazorChat.Server.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using QRCoder;
 
-namespace BlazorMLSA.Server.Pages
+namespace BlazorChat.Server.Pages
 {
     public class ProfileModel : PageModel
     {

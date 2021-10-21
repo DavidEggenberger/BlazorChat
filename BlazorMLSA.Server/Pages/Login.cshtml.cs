@@ -1,10 +1,10 @@
-using BlazorMLSA.Server.Data;
+using BlazorChat.Server.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace BlazorMLSA.Server.Pages
+namespace BlazorChat.Server.Pages
 {
     [AllowAnonymous]
     public class LoginModel : PageModel

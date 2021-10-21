@@ -1,10 +1,10 @@
-﻿using BlazorMLSA.Server.Data;
-using BlazorMLSA.Shared;
+﻿using BlazorChat.Server.Data;
+using BlazorChat.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BlazorMLSA.Server.Controllers
+namespace BlazorChat.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

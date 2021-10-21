@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorMLSA.Client.Diagrams.Ports
+namespace BlazorChat.Client.Diagrams.Ports
 {
     public class ColumnPort : PortModel
     {
