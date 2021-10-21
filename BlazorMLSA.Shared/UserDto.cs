@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BlazorMLSA.Shared
+﻿namespace BlazorMLSA.Shared
 {
     public class UserDto
     {

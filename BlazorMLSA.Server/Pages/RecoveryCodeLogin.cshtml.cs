@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using BlazorMLSA.Server.Data;
-using BlazorMLSA.Server.Data.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +21,13 @@ namespace BlazorMLSA.Server.Pages
         [BindProperty]
         public string RecoveryCode { get; set; }
 
+        public RecoveryCodeLoginModel(string errorMessage)
+        {
+            if (errorMessage != null)
+            {
+                ModelState.AddModelError(string.Empty, errorMessage);
+            }
+        }
         public async Task<ActionResult> OnPost()
         {
             var signInResult = await signInManager.TwoFactorRecoveryCodeSignInAsync(RecoveryCode);

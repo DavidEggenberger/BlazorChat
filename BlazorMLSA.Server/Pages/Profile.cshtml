@@ -28,6 +28,7 @@
         {
             <form method="post">
                 <h3>Enable 2 Factor-Authentication by scanning the code with Google Authenticator</h3>
+                <div asp-validation-summary="All"></div>
                 <label>The code from the authenticator APP:</label>
                 <input asp-for="@Model.AuthenticatorCode" />
                 <button type="submit">Enable 2FA</button>

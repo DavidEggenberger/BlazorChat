@@ -22,7 +22,13 @@ namespace BlazorMLSA.Server.Pages
         [BindProperty]
         public string authenticatorCode { get; set; }
         
-        public void OnGet() { }
+        public void OnGet(string errorMessage) 
+        {
+            if (errorMessage != null)
+            {
+                ModelState.AddModelError(string.Empty, errorMessage);
+            }
+        }
         public async Task<ActionResult> OnPostAsync()
         {
             string formattedAuthenticatorCode = authenticatorCode.Replace(" ", string.Empty);
@@ -31,7 +37,11 @@ namespace BlazorMLSA.Server.Pages
             {
                 return LocalRedirect(ReturnUrl);
             }
-            return Redirect("/");
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Invalid authenticator code.");
+                return Page();
+            }
         }
     }
 }

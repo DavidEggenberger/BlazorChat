@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -7,7 +6,6 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using BlazorMLSA.Server.Data;
-using BlazorMLSA.Server.Data.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -33,8 +31,12 @@ namespace BlazorMLSA.Server.Pages
         public bool TwoFAEnabled { get; set; }
         public ApplicationUser ApplicationUser { get; set; }    
         public string Base64 { get; set; }
-        public async Task OnGet()
+        public async Task OnGet(string errorMessage)
         {
+            if(errorMessage != null)
+            {
+                ModelState.AddModelError(string.Empty, errorMessage);
+            }
             ApplicationUser = await userManager.GetUserAsync(User);
             TwoFAEnabled = await userManager.GetTwoFactorEnabledAsync(ApplicationUser);
             var unformattedKey = await userManager.GetAuthenticatorKeyAsync(ApplicationUser);
@@ -63,6 +65,10 @@ namespace BlazorMLSA.Server.Pages
             if (is2faTokenValid)
             {
                 await userManager.SetTwoFactorEnabledAsync(ApplicationUser, true);
+            }
+            else
+            {
+                return RedirectToPage("/Profile", new { errorMessage = "Invalid Authenticator Login attempt" });
             }
 
             if(await userManager.CountRecoveryCodesAsync(ApplicationUser) == 0)
