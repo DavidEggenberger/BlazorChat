@@ -43,8 +43,8 @@ namespace BlazorChat.Server.Hubs
         }
         public override async Task OnDisconnectedAsync(Exception ex)
         {
-            ApplicationUser appUser = await userManager.GetUserAsync(Context.User);
-            if(appUser.TabsOpen > 0)
+            ApplicationUser appUser = await userManager.FindByIdAsync(Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (appUser.TabsOpen > 0)
             {
                 appUser.TabsOpen--;
                 await applicationDbContext.SaveChangesAsync();
