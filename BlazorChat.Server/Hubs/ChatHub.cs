@@ -61,16 +61,16 @@ namespace BlazorChat.Server.Hubs
                 });
             }
         }
-        public async Task Chat(MessageDto message)
+        public async Task Chat(MessageDto messageDto)
         {
             applicationDbContext.Messages.Add(new Message
             {
-                Text = message.Content,
-                ReceiverId = message.ReceiverId,
-                SenderId = message.SenderId
+                Text = messageDto.Content,
+                ReceiverId = messageDto.ReceiverId,
+                SenderId = messageDto.SenderId
             });
             await applicationDbContext.SaveChangesAsync();
-            await Clients.Users(message.ReceiverId, message.SenderId).SendAsync("ReceiveMessage");
+            await Clients.Users(messageDto.ReceiverId, messageDto.SenderId).SendAsync("ReceiveMessage");
         }
     }
 }
