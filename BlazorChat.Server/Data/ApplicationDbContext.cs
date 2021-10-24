@@ -12,7 +12,7 @@ namespace BlazorChat.Server.Data
             DbContextOptions options,
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
         {
-            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+            
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {

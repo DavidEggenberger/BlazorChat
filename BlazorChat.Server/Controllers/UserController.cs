@@ -3,6 +3,7 @@ using BlazorChat.Shared;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 
 namespace BlazorChat.Server.Controllers
 {
@@ -17,19 +18,17 @@ namespace BlazorChat.Server.Controllers
         }
         public IEnumerable<UserDto> Get()
         {
-            List<ApplicationUser> applicationUsers = applicationDbContext.Users.ToList();
             return applicationDbContext.Users
                 .Where(user => user.IsOnline)
                 .ToList()
-                .Select(user => 
+                .Select(appUser => 
                 {
-                    ApplicationUser applicationUser = applicationUsers.Find(appUser => appUser.Id == user.Id);
                     return new UserDto
                     {
-                        Id = user.Id.ToString(),
-                        IDP = applicationDbContext.UserLogins.Where(userLogin => userLogin.UserId == user.Id.ToString()).First().LoginProvider,
-                        Image = applicationUser.PictureUri,
-                        Name = applicationUser.UserName
+                        Id = appUser.Id.ToString(),
+                        IDP = applicationDbContext.UserLogins.Where(userLogin => userLogin.UserId == appUser.Id).First().LoginProvider,
+                        Image = appUser.PictureUri,
+                        Name = appUser.UserName
                     };
                 });
         }

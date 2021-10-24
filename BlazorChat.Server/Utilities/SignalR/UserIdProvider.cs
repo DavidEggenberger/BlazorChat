@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using System.Security.Claims;
 
 namespace BlazorChat.Server.Utilities.SignalR
 {
@@ -6,7 +7,7 @@ namespace BlazorChat.Server.Utilities.SignalR
     {
         public virtual string GetUserId(HubConnectionContext connection)
         {
-            return connection.User?.FindFirst("sub")?.Value;
+            return connection.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
     }
 }

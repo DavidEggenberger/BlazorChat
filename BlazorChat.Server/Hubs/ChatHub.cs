@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace BlazorChat.Server.Hubs
@@ -19,8 +20,8 @@ namespace BlazorChat.Server.Hubs
         }
         public override async Task OnConnectedAsync()
         {
-            ApplicationUser appUser = await userManager.GetUserAsync(Context.User);
-            if(appUser.IsOnline is false)
+            ApplicationUser appUser = await userManager.FindByIdAsync(Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            if (appUser.IsOnline is false)
             {
                 appUser.IsOnline = true;
                 appUser.TabsOpen = 1;

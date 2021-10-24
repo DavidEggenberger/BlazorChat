@@ -16,7 +16,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -95,6 +97,8 @@ namespace BlazorChat.Server
                     {
                         if (context.Request.Path.StartsWithSegments(new PathString("/api"), StringComparison.OrdinalIgnoreCase))
                             return IdentityServerJwtConstants.IdentityServerJwtScheme;
+                        if (context.Request.Path.Value.EndsWith("hub", StringComparison.OrdinalIgnoreCase))
+                            return IdentityServerJwtConstants.IdentityServerJwtScheme;
                         else
                             return IdentityConstants.ApplicationScheme;
                     };
@@ -172,13 +176,30 @@ namespace BlazorChat.Server
                     };
                     var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("David Eggenberger Security key very long very secure")), SecurityAlgorithms.HmacSha256);
                 });
-            }   
-
+            }
+            
             services.Configure<JwtBearerOptions>(IdentityServerJwtConstants.IdentityServerJwtBearerScheme, options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidAudience = "API"
+                };
+                var originalOnMessageReceived = options.Events.OnMessageReceived;
+                options.Events.OnMessageReceived = async context =>
+                {
+                    await originalOnMessageReceived(context);
+
+                    if (string.IsNullOrEmpty(context.Token))
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.Value.EndsWith("hub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                    }
                 };
             });
             services.ConfigureApplicationCookie(config =>

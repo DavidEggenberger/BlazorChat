@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace BlazorChat.Server.Controllers
@@ -14,15 +13,17 @@ namespace BlazorChat.Server.Controllers
     public class MessagesController : ControllerBase
     {
         private ApplicationDbContext applicationDbContext;
+        private UserManager<ApplicationUser> userManager;
         public MessagesController(UserManager<ApplicationUser> userManager, ApplicationDbContext applicationDbContext)
         {
             this.applicationDbContext = applicationDbContext;
+            this.userManager = userManager;
         }
         public async Task<IEnumerable<MessageDto>> Get()
         {
-            var id = User.Claims.Where(claim => claim.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+            ApplicationUser appUser = await userManager.GetUserAsync(HttpContext.User);
             return applicationDbContext.Messages
-                .Where(message => message.SenderId == id || message.ReceiverId == id)
+                .Where(message => message.SenderId == appUser.Id || message.ReceiverId == appUser.Id)
                 .Select(message => new MessageDto
                 {
                     Content = message.Text,
