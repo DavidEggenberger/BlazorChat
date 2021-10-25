@@ -140,7 +140,7 @@ namespace BlazorChat.Server
                             Scopes = new List<string> {"API"}
                         }
                     };
-                    var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("David Eggenberger Security key very long very secure")), SecurityAlgorithms.HmacSha256);
+                    var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["SecretKey"])), SecurityAlgorithms.HmacSha256);
                 });
             }
             if (webHostEnvironment.IsProduction() || webHostEnvironment.IsStaging())
@@ -172,7 +172,7 @@ namespace BlazorChat.Server
                             Scopes = new List<string> {"API"}
                         }
                     };
-                    var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes("David Eggenberger Security key very long very secure")), SecurityAlgorithms.HmacSha256);
+                    var cert = options.SigningCredential = new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["SecretKey"])), SecurityAlgorithms.HmacSha256);
                 });
             }
             

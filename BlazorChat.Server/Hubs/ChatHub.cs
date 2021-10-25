@@ -26,7 +26,7 @@ namespace BlazorChat.Server.Hubs
                 appUser.IsOnline = true;
                 appUser.TabsOpen = 1;
                 await applicationDbContext.SaveChangesAsync();
-                await Clients.All.SendAsync("NewUser", new UserDto
+                await Clients.AllExcept(appUser.Id).SendAsync("NewUser", new UserDto
                 {
                     Id = appUser.Id,
                     IDP = applicationDbContext.UserLogins.Where(userLogin => userLogin.UserId == appUser.Id.ToString()).First().LoginProvider,
